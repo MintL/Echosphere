@@ -1,0 +1,304 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── Section shell ── */
+.section {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sectionLast {
+  border-bottom: none;
+  padding-bottom: 48px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sectionCount {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+
+/* ── Header ── */
+.header {
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.wordmark {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.headerMeta {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  color: var(--ink-3);
+  font-style: normal;
+}
+
+.logBtn {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, letter-spacing 0.15s ease;
+}
+
+.logBtn:hover {
+  color: var(--ink);
+}
+
+/* ── Resources ── */
+.resources {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.resourceItem {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.resourceLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.resourceValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.resourceDot {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+/* ── Events ── */
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.event {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 60%, transparent);
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.event:first-child {
+  padding-top: 0;
+}
+
+.event:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.event:hover {
+  opacity: 0.65;
+}
+
+.eventTitle {
+  font-family: var(--font-prose);
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.eventCrisis .eventTitle {
+  color: var(--crisis);
+}
+
+.eventArrow {
+  font-size: 13px;
+  color: var(--ink-3);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.event:hover .eventArrow {
+  transform: translateX(2px);
+}
+
+/* ── Ecosystem ── */
+.biomes {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.biomeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.biomeName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.biomeBar {
+  flex: 1;
+  height: 2px;
+  background: var(--rule);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.biomeBarFill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.4s ease;
+}
+
+.statusLabel {
+  font-size: 11px;
+  font-weight: 500;
+  width: 46px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.statusStable  { color: var(--ink-2); }
+.statusRising  { color: var(--positive); }
+.statusStress  { color: var(--accent); }
+.statusCritical { color: var(--crisis); }
+
+/* ── Species ── */
+.speciesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.speciesRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 50%, transparent);
+}
+
+.speciesRow:last-child {
+  border-bottom: none;
+}
+
+.speciesName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  flex: 1;
+}
+
+.speciesPop {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  margin-right: 16px;
+  min-width: 48px;
+  text-align: right;
+}
+
+.trendUp   { font-size: 12px; color: var(--positive); min-width: 64px; text-align: right; }
+.trendDown { font-size: 12px; color: var(--crisis);   min-width: 64px; text-align: right; }
+.trendFlat { font-size: 12px; color: var(--ink-3);    min-width: 64px; text-align: right; }
+
+/* ── Tools ── */
+.toolsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolType {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.toolSep {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.toolStatus {
+  margin-left: auto;
+  font-size: 8px;
+}
+
+.toolActive    { color: var(--positive); }
+.toolDestroyed { color: var(--crisis); }

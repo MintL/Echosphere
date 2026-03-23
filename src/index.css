@@ -1,0 +1,71 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:           #f2ece0;
+  --bg-alt:       #ebe4d4;
+  --ink:          #1c160f;
+  --ink-2:        #5e5044;
+  --ink-3:        #9a8b7a;
+  --rule:         #d8cfc0;
+  --accent:       #a67c2e;
+  --crisis:       #7d3320;
+  --positive:     #3d6640;
+
+  --biome-high:   #4a6741;
+  --biome-under:  #3a4d6b;
+  --biome-scorch: #8b4f2a;
+
+  --font-ui:    'Space Grotesk', sans-serif;
+  --font-prose: 'Crimson Pro', serif;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Paper grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  background-repeat: repeat;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Entity links — species and biome names inline in prose */
+.entity {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--accent) 35%, transparent);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+  font-style: normal;
+}
+
+.entity:hover {
+  text-decoration-color: var(--accent);
+}
