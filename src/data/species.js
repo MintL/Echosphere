@@ -142,7 +142,7 @@ export const SPECIES_DEFS = [
     borderBiome: null,
     borderPosition: 0,
     startingPopulation: 80,
-    naturalDeathRate: 0.02,
+    naturalDeathRate: 0.021,
     movementTraits: ['walker', 'armored'],
     biomeComfort: { highgrowth: 0.0, understory: 0.0, scorchFlats: 1.0 },
     eats: [
@@ -160,7 +160,7 @@ export const SPECIES_DEFS = [
     borderBiome: null,
     borderPosition: 0,
     startingPopulation: 60,
-    naturalDeathRate: 0.012,
+    naturalDeathRate: 0.017,
     movementTraits: ['flyer'],
     biomeComfort: { highgrowth: 1.0, understory: 0.0, scorchFlats: 0.3 },
     eats: [
@@ -180,7 +180,7 @@ export const SPECIES_DEFS = [
     biomeComfort: { highgrowth: 1.0, understory: 0.8, scorchFlats: 0.0 },
     eats: [
       { preyId: 'vellin',  attackRate: 0.00015, efficiency: 0.60 },
-      { preyId: 'woldren', attackRate: 0.00015, efficiency: 0.60 },
+      { preyId: 'woldren', attackRate: 0.00022, efficiency: 0.60 },
     ],
   },
   {
@@ -196,7 +196,7 @@ export const SPECIES_DEFS = [
     biomeComfort: { highgrowth: 1.0, understory: 0.8, scorchFlats: 0.4 },
     eats: [
       { preyId: 'woldren', attackRate: 0.00025, efficiency: 0.55 },
-      { preyId: 'brack',   attackRate: 0.00020, efficiency: 0.55 },
+      { preyId: 'brack',   attackRate: 0.00024, efficiency: 0.55 },
       { preyId: 'torrak',  attackRate: 0.00025, efficiency: 0.55 },
     ],
   },

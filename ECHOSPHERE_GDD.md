@@ -858,7 +858,130 @@ if subpopulation.cyclesAdapting > adaptationThreshold
 
 Every event type maps to a threshold check. The simulation generates the facts. The writing system turns them into text.
 
-### Batch Calculation
+### What Good Simulation Output Looks Like
+
+All species surviving all the time is not a success - it means the simulation is too stable. Flat stable populations, no extinctions, and no dramatic events indicate predation rates are too weak and the ecosystem is not generating the stories the game depends on.
+
+The target is interesting oscillation with occasional extinction:
+
+- No extinctions in the first 50 cycles - gives the player time to get attached
+- Occasional extinctions after cycle 50 from ecological pressure building naturally
+- Producers almost never go extinct - losing a producer collapses a whole biome
+- Some runs where a species barely survives, others where it goes extinct - that variance is the game
+- Visible predator/prey oscillation - populations rising and falling in linked rhythms, not flat lines
+
+A healthy simulation report across 10 runs looks like:
+
+```
+Run 1: 11/11 surviving at cycle 500. Vellin crashed to 8 at cycle 340 but recovered.
+Run 2: 10/11 surviving. Skethran extinct at cycle 412 after Woldren collapse.
+Run 3: 11/11 surviving. Keth/Vellin oscillations dramatic but stable.
+Run 4: 9/11 surviving. Torrak and Brack both lost after Scaleweed crash at cycle 280.
+```
+
+That mix - mostly surviving, occasional extinction, dramatic near-misses - means the coefficients are in the right zone. Tuning from there is about making the stories feel ecologically honest rather than hitting a numerical threshold.
+
+Population explosions (a species exceeding ~10000) are always a failure state. They indicate a predator has become too weak or extinct and its prey is compounding unchecked each cycle. Explosions usually precede total ecosystem collapse.
+
+### World Generation and Variance
+
+Each world is generated from a seed at game start. Starting conditions vary per world — different populations, slightly different coefficients, different biome health. This is the primary source of run-to-run variance. No two worlds play the same way, and extinctions emerge from the specific conditions of that world rather than from scripted pressure.
+
+All variance derives from the seed, so worlds are fully reproducible. The world designation is recorded at the top of the researcher log:
+
+> *Station established. World designation: 8472.*
+
+Players who care will notice it. Most won't. But it quietly communicates that this world is specific and unique.
+
+**What varies at world generation:**
+
+- **Starting populations** — ±20% from baseline per species
+- **Growth and death rates** — ±10% per species
+- **Predation efficiency** — ±5-8% (tightest variance, most sensitive coefficient)
+- **Biome comfort modifiers** — ±8% per species per biome
+- **Biome starting health** — small per-biome variance
+
+Base coefficients represent healthy ideal-condition behavior. Variance is a separate tuning concern layered on top — these are not the same problem and should not be solved together.
+
+```javascript
+function generateWorld(seed) {
+  const rng = createSeededRng(seed)
+
+  return {
+    randomSeed: seed,
+    biomes: generateBiomes(rng),
+    species: BASE_SPECIES.map(species => ({
+      ...species,
+      population: vary(species.basePopulation, 0.20, rng),
+      growthRate: vary(species.baseGrowthRate, 0.10, rng),
+      deathRate: vary(species.baseDeathRate, 0.10, rng),
+      predationEfficiency: vary(species.basePredationEfficiency, 0.07, rng),
+      biomeComfort: varyComfort(species.baseBiomeComfort, 0.08, rng)
+    }))
+  }
+}
+
+function vary(base, range, rng) {
+  return base * (1 + (rng() - 0.5) * 2 * range)
+}
+```
+
+### Extinction Timing Targets
+
+The target window for first extinction is cycles 50–100. This gives the player time to get attached before anything dies, while ensuring the first loss happens before the ecosystem becomes too complex to absorb it cleanly.
+
+- No extinctions before cycle 50 — player needs time to learn the creatures
+- At least one extinction before cycle 100 in the majority of runs — ensures the catalog mechanic and first-loss writing are encountered in normal play
+- Variance across runs determines which species dies, not a scripted designation
+
+Species most naturally prone to early extinction due to isolated food chains and limited recovery paths: Torrak, Woldren, Brack. World generation variance will cause one of these to start overextended in most worlds without any of them being permanently designated as the tutorial casualty.
+
+### Headless Simulation Audit
+
+Before building any UI, a headless simulation script should be run to verify that world variance produces the target distribution. This script is also the primary tool for verifying coefficient changes don't destabilize the ecosystem.
+
+```javascript
+function auditWorldVariance(seedCount) {
+  const results = []
+
+  for (let i = 0; i < seedCount; i++) {
+    const world = generateWorld(i)
+    const { state, events } = runCycles(world, 500)
+
+    results.push({
+      seed: i,
+      firstExtinction: findFirstExtinction(events),
+      survivorsAt100: countSurvivors(state, 100),
+      survivorsAt500: countSurvivors(state, 500),
+      collapsed: didCollapse(state)
+    })
+  }
+
+  return summarize(results)
+}
+```
+
+**Target distribution across 500 runs:**
+
+```
+First extinction cycle distribution:
+  Before cycle 50:   <5%   ← want this low
+  Cycles 50-100:    ~60%   ← want this high
+  Cycles 100-200:   ~30%
+  After cycle 200:    ~5%
+  Never:              0%   ← zero tolerance
+
+Survivors at cycle 500:
+  8-11 species:     ~70%   ← healthy variance
+  5-7 species:      ~25%   ← collapse arc, still interesting
+  Under 5:           <5%   ← too fragile, tighten floor
+
+Collapse rate:        <3%
+```
+
+If the distribution is wrong, tune the variance ranges — not the base coefficients. Run the audit again after any new species, trait, or mechanic is added.
+
+
 
 When the player opens the app the system runs all elapsed cycles in a loop:
 
