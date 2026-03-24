@@ -39,9 +39,20 @@ Before any UI: build a script that runs thousands of cycles and reports outcomes
 
 ## Key Design Constants (from GDD)
 
+> Read ECHOSPHERE_GDD.md sections on demand — not the whole file every session. Use Grep to find the relevant section heading and its line number, then Read with offset+limit to pull just that section. Only read the full document when making broad architectural decisions.
+>
+> Key sections and approximate locations:
+> - **UI Structure / Home Screen / Event Cards** — line ~1592
+> - **Simulation Model** — line ~750
+> - **Events / Event Types / Triggers** — line ~253
+> - **Research Projects** — line ~1184
+> - **Decision System** — line ~1040
+> - **Species Catalog / Migration / Evolution** — line ~945
+> - **Time Model** — line ~564
+
 - **Extinction threshold:** population < 1.0 → force to zero, fire extinction event
 - **Batch cycle cap:** max 200 elapsed cycles simulated on app open
-- **Real time ratio:** ~1 hour real = 1 in-game cycle
+- **Real time ratio:** 30 minutes real = 1 in-game cycle
 - **Randomness per cycle:** ±10% noise on population change
 - **Biome comfort multipliers:** home 1.0, tolerated 0.6, hostile 0.2, incompatible 0.0
 - **Migration splinter size:** 10% of population on attempt
@@ -55,6 +66,7 @@ Before any UI: build a script that runs thousands of cycles and reports outcomes
 - **One home screen.** Most sessions never leave it. Secondary screens are detail views that open and return to home.
 - **Information ordered by urgency.** Events above ecosystem state above tools.
 - **No tutorial text, no popups, no feature explanations.** The game explains itself through events and researcher voice.
+- **No entity links inside clickable content.** Do not apply the `.entity` class (or any link styling) to names inside buttons or other interactive elements. Entity links are for prose and static display contexts only.
 
 ## Design Tone
 
@@ -103,6 +115,15 @@ src/
 1. **Simulation coefficient balancing** — Lotka-Volterra is chaotic. Solve in the headless script, not in the UI.
 2. **Rubber-banding** — Hidden stabilizing forces will be needed. Keep them invisible. Never reference them in writing or UI.
 3. **Procedural text fatigue** — Budget serious authoring time. Several thousand sentences needed for a long playthrough to feel alive.
+
+## Research Projects (active gameplay layer)
+
+- One project active at a time, queue of 2-3 suggestions always ready
+- Projects are suggested by the ecosystem based on simulation state - not player-assigned
+- Project types: species studies, ecological surveys, long-term monitoring, resource extraction, hazard assessment
+- Species milestones only advance through research projects, not passive observation
+- Project time shown as approximate human language ("a few hours") not cycle counts
+- Station upgrades reduce project cost and duration
 
 ## What NOT to Do
 

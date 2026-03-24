@@ -86,7 +86,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: color 0.15s ease, letter-spacing 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .logBtn:hover {
@@ -131,34 +131,63 @@
 .events {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
-.event {
+/* Crisis card */
+.eventCrisis {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
-  background: transparent;
+  background: color-mix(in oklch, var(--crisis) 7%, var(--bg));
   border: none;
-  border-bottom: 1px solid color-mix(in oklch, var(--rule) 60%, transparent);
-  padding: 10px 0;
+  border-radius: 3px;
+  padding: 12px 14px;
   cursor: pointer;
   text-align: left;
   transition: opacity 0.15s ease;
 }
 
-.event:first-child {
-  padding-top: 0;
+.eventCrisis:hover {
+  opacity: 0.75;
 }
 
-.event:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+/* Decision card */
+.eventDecision {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: color-mix(in oklch, var(--accent) 7%, var(--bg));
+  border: none;
+  border-radius: 3px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s ease;
 }
 
-.event:hover {
+.eventDecision:hover {
+  opacity: 0.75;
+}
+
+/* Observation card */
+.eventObservation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-alt);
+  border: none;
+  border-radius: 3px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.eventObservation:hover {
   opacity: 0.65;
 }
 
@@ -173,58 +202,164 @@
   color: var(--crisis);
 }
 
-.eventArrow {
-  font-size: 13px;
-  color: var(--ink-3);
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
+.eventBody {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.45;
 }
 
-.event:hover .eventArrow {
-  transform: translateX(2px);
-}
-
-/* ── Ecosystem ── */
-.biomes {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-}
-
-.biomeRow {
+/* Footer row: biome chip + CTA or arrow */
+.eventFooterRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
 }
 
-.biomeName {
-  font-size: 13px;
-  font-weight: 500;
+
+/* Crisis CTA */
+.eventCta {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.eventCtaTier1 { color: var(--ink-2); }
+.eventCtaTier2 { color: var(--accent); }
+.eventCtaTier3 { color: var(--crisis); }
+.eventCtaDecision { color: var(--accent); }
+
+/* Expired state */
+.eventExpired {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* Cycle label */
+.eventCycle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ── Research strip ── */
+.researchStrip {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  transition: opacity 0.15s ease;
+}
+
+.researchStrip:hover {
+  opacity: 0.7;
+}
+
+.researchMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.researchName {
+  font-family: var(--font-prose);
+  font-size: 15px;
   color: var(--ink);
-  width: 90px;
+  line-height: 1.3;
+}
+
+.researchSep {
+  color: var(--ink-3);
+  font-size: 12px;
   flex-shrink: 0;
 }
 
-.biomeBar {
-  flex: 1;
+.researchTime {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.researchBar {
   height: 2px;
   background: var(--rule);
   border-radius: 1px;
   overflow: hidden;
 }
 
-.biomeBarFill {
+.researchBarFill {
   height: 100%;
+  background: var(--accent);
   border-radius: 1px;
   transition: width 0.4s ease;
 }
 
-.statusLabel {
-  font-size: 11px;
-  font-weight: 500;
-  width: 46px;
-  text-align: right;
+/* ── Split grid (Species + Ecosystem) ── */
+.splitGrid {
+  display: grid;
+  grid-template-columns: 57fr 43fr;
+}
+
+.splitLeft {
+  padding-right: 20px;
+  border-right: 1px solid var(--rule);
+}
+
+.splitRight {
+  padding-left: 20px;
+}
+
+/* ── Ecosystem biome rows ── */
+.biomeList {
+  display: flex;
+  flex-direction: column;
+}
+
+.biomeRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 50%, transparent);
+}
+
+.biomeRow:last-child {
+  border-bottom: none;
+}
+
+.biomeRowDot {
+  font-size: 7px;
   flex-shrink: 0;
+  line-height: 1;
+}
+
+.biomeRowName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  flex: 1;
+  line-height: 1.2;
+}
+
+.statusLabel {
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .statusStable  { color: var(--ink-2); }
@@ -232,17 +367,33 @@
 .statusStress  { color: var(--accent); }
 .statusCritical { color: var(--crisis); }
 
+/* ── View all ── */
+.viewAll {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.viewAll:hover {
+  color: var(--ink-2);
+}
+
 /* ── Species ── */
 .speciesList {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .speciesRow {
   display: flex;
   align-items: baseline;
-  gap: 0;
   padding: 6px 0;
   border-bottom: 1px solid color-mix(in oklch, var(--rule) 50%, transparent);
 }
@@ -262,43 +413,12 @@
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-2);
-  margin-right: 16px;
-  min-width: 48px;
   text-align: right;
-}
-
-.trendUp   { font-size: 12px; color: var(--positive); min-width: 64px; text-align: right; }
-.trendDown { font-size: 12px; color: var(--crisis);   min-width: 64px; text-align: right; }
-.trendFlat { font-size: 12px; color: var(--ink-3);    min-width: 64px; text-align: right; }
-
-/* ── Tools ── */
-.toolsList {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: baseline;
+  gap: 3px;
 }
 
-.toolRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.toolType {
-  font-size: 13px;
-  color: var(--ink);
-  font-weight: 400;
-}
-
-.toolSep {
-  color: var(--ink-3);
-  font-size: 12px;
-}
-
-.toolStatus {
-  margin-left: auto;
-  font-size: 8px;
-}
-
-.toolActive    { color: var(--positive); }
-.toolDestroyed { color: var(--crisis); }
+.trendUp   { font-size: 11px; color: var(--positive); }
+.trendDown { font-size: 11px; color: var(--crisis);   }
+.trendFlat { font-size: 11px; color: var(--ink-3);    }

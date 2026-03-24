@@ -7,26 +7,61 @@ const BIOME_COLORS = {
   scorch:      'var(--biome-scorch)',
 }
 
+const CTA_LABELS = {
+  1: 'I should respond',
+  2: 'I need to decide',
+  3: "Can't ignore this",
+}
+
 const MOCK = {
   researcher: 'Dr. Voss',
   cycle: 94,
   away: { hours: 6, cycles: 6 },
   resources: { fieldData: 340, specimens: 12 },
+  research: {
+    active: {
+      targetName: 'Vellin',
+      type: 'behavioral study',
+      timeLabel: 'a few hours',
+      progress: 0.62,
+    },
+    suggestionsReady: 3,
+  },
   events: [
     {
       id: 1,
       urgency: 'crisis',
+      urgencyTier: 2,
+      expired: false,
+      cycle: 91,
       title: 'Vellin population collapsing — Highgrowth',
+      body: 'The numbers are bad. Keth pressure has been building for three cycles.',
+      speciesIds: ['vellin', 'keth'],
+      biome: { id: 'highgrowth', name: 'Highgrowth' },
+    },
+    {
+      id: 3,
+      urgency: 'decision',
+      expired: false,
+      cycle: 90,
+      title: 'Keth range expanding into Understory — do you intervene?',
+      body: 'They have pushed further than last season. This could stabilize or accelerate.',
+      speciesIds: ['keth', 'vellin'],
+      biome: { id: 'understory', name: 'Understory' },
     },
     {
       id: 2,
-      urgency: 'normal',
-      title: 'Vellin crossed into Understory for the first time',
+      urgency: 'observation',
+      expired: false,
+      cycle: 88,
+      title: 'Vellin crossed into Understory for the first time.',
+      speciesIds: ['vellin'],
+      biome: { id: 'understory', name: 'Understory' },
     },
   ],
   biomes: [
-    { id: 'highgrowth', name: 'Highgrowth',  health: 0.82, status: 'stable' },
-    { id: 'understory', name: 'Understory',  health: 0.71, status: 'rising' },
+    { id: 'highgrowth', name: 'Highgrowth',   health: 0.82, status: 'stable' },
+    { id: 'understory', name: 'Understory',   health: 0.71, status: 'rising' },
     { id: 'scorch',     name: 'Scorch Flats', health: 0.44, status: 'stress' },
   ],
   species: [
@@ -42,12 +77,6 @@ const MOCK = {
     { id: 'grubmere',  name: 'Grubmere',  pop:  543, change: 5,   role: 'decomposer' },
     { id: 'mordath',   name: 'Mordath',   pop:   14, change: 0,   role: 'apex'       },
   ],
-  tools: [
-    { id: 1, type: 'Observation Post',      location: 'Highgrowth',  status: 'active' },
-    { id: 2, type: 'Observation Post',      location: 'Scorch Flats', status: 'active' },
-    { id: 3, type: 'Sample Collector',      location: 'Vellin',      status: 'active' },
-    { id: 4, type: 'Environmental Sensor',  location: 'Understory',  status: 'active' },
-  ],
 }
 
 
@@ -56,9 +85,9 @@ function formatPop(n) {
 }
 
 function Trend({ change }) {
-  if (change > 0) return <span className={styles.trendUp}>up {change}%</span>
-  if (change < 0) return <span className={styles.trendDown}>down {Math.abs(change)}%</span>
-  return <span className={styles.trendFlat}>stable</span>
+  if (change > 0) return <span className={styles.trendUp}>↑</span>
+  if (change < 0) return <span className={styles.trendDown}>↓</span>
+  return <span className={styles.trendFlat}>–</span>
 }
 
 function StatusLabel({ status }) {
@@ -71,10 +100,13 @@ function StatusLabel({ status }) {
   return <span className={`${styles.statusLabel} ${cls}`}>{status}</span>
 }
 
+
 export default function Home() {
   const navigate = useNavigate()
   const researcher = localStorage.getItem('echosphere_researcher') || 'Researcher'
   const d = { ...MOCK, researcher }
+  const eventSpeciesIds = new Set(d.events.flatMap(ev => ev.speciesIds ?? []))
+  const eventSpecies = d.species.filter(sp => eventSpeciesIds.has(sp.id))
 
   return (
     <div className={styles.page}>
@@ -104,86 +136,134 @@ export default function Home() {
       </header>
 
       {/* ── Events ── */}
+      {d.events.length > 0 && (
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionLabel}>
+              Events
+              <span className={styles.sectionCount}>{d.events.length}</span>
+            </span>
+          </div>
+
+          <div className={styles.events}>
+            {d.events.map(ev => {
+              if (ev.urgency === 'crisis') return (
+                <button key={ev.id} className={styles.eventCrisis}>
+                  <span className={styles.eventTitle}>{ev.title}</span>
+                  {ev.body && <span className={styles.eventBody}>{ev.body}</span>}
+                  <div className={styles.eventFooterRow}>
+                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
+                    {ev.expired ? (
+                      <span className={styles.eventExpired}>resolved while you were away.</span>
+                    ) : (
+                      <span className={`${styles.eventCta} ${styles[`eventCtaTier${ev.urgencyTier}`]}`}>
+                        {CTA_LABELS[ev.urgencyTier]} →
+                      </span>
+                    )}
+                  </div>
+                </button>
+              )
+              if (ev.urgency === 'decision') return (
+                <button key={ev.id} className={styles.eventDecision}>
+                  <span className={styles.eventTitle}>{ev.title}</span>
+                  {ev.body && <span className={styles.eventBody}>{ev.body}</span>}
+                  <div className={styles.eventFooterRow}>
+                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
+                    {ev.expired ? (
+                      <span className={styles.eventExpired}>resolved while you were away.</span>
+                    ) : (
+                      <span className={`${styles.eventCta} ${styles.eventCtaDecision}`}>
+                        I should weigh in →
+                      </span>
+                    )}
+                  </div>
+                </button>
+              )
+              return (
+                <button key={ev.id} className={styles.eventObservation}>
+                  <span className={styles.eventTitle}>{ev.title}</span>
+                  <div className={styles.eventFooterRow}>
+                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Research ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>
-            Events
-            <span className={styles.sectionCount}>{d.events.length}</span>
-          </span>
+          <span className={styles.sectionLabel}>Research</span>
         </div>
-
-        <div className={styles.events}>
-          {d.events.map(ev => (
-            <button
-              key={ev.id}
-              className={`${styles.event} ${ev.urgency === 'crisis' ? styles.eventCrisis : ''}`}
-            >
-              <span className={styles.eventTitle}>{ev.title}</span>
-              <span className={styles.eventArrow}>→</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Ecosystem ── */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>Ecosystem</span>
-        </div>
-
-        <div className={styles.biomes}>
-          {d.biomes.map(b => (
-            <div key={b.id} className={styles.biomeRow}>
-              <span className={`${styles.biomeName} entity`}>{b.name}</span>
-              <div className={styles.biomeBar}>
-                <div
-                  className={styles.biomeBarFill}
-                  style={{
-                    width: `${b.health * 100}%`,
-                    backgroundColor: BIOME_COLORS[b.id],
-                  }}
-                />
-              </div>
-              <StatusLabel status={b.status} />
+        {d.research.active ? (
+          <button className={styles.researchStrip}>
+            <div className={styles.researchMeta}>
+              <span className={styles.researchName}>
+                {d.research.active.targetName} {d.research.active.type}
+              </span>
+              <span className={styles.researchSep}>·</span>
+              <span className={styles.researchTime}>results in {d.research.active.timeLabel}</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Species ── */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>Species</span>
-        </div>
-
-        <div className={styles.speciesList}>
-          {d.species.map(sp => (
-            <div key={sp.id} className={styles.speciesRow}>
-              <span className={`${styles.speciesName} entity`}>{sp.name}</span>
-              <span className={styles.speciesPop}>{formatPop(sp.pop)}</span>
-              <Trend change={sp.change} />
+            <div className={styles.researchBar}>
+              <div
+                className={styles.researchBarFill}
+                style={{ width: `${d.research.active.progress * 100}%` }}
+              />
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Tools ── */}
-      <section className={`${styles.section} ${styles.sectionLast}`}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>Tools</span>
-        </div>
-
-        <div className={styles.toolsList}>
-          {d.tools.map(t => (
-            <div key={t.id} className={styles.toolRow}>
-              <span className={styles.toolType}>{t.type}</span>
-              <span className={styles.toolSep}>·</span>
-              <span className="entity">{t.location}</span>
-              <span className={`${styles.toolStatus} ${t.status === 'active' ? styles.toolActive : styles.toolDestroyed}`}>
-                {t.status === 'active' ? '●' : '○'}
+          </button>
+        ) : (
+          <button className={styles.researchStrip}>
+            <div className={styles.researchMeta}>
+              <span className={styles.researchName}>No active project.</span>
+              <span className={styles.researchTime}>
+                {d.research.suggestionsReady} studies ready to begin.
               </span>
             </div>
-          ))}
+          </button>
+        )}
+      </section>
+
+      {/* ── Species + Ecosystem ── */}
+      <section className={`${styles.section} ${styles.sectionLast}`}>
+        <div className={styles.splitGrid}>
+
+          <div className={styles.splitLeft}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionLabel}>Species</span>
+            </div>
+            <div className={styles.speciesList}>
+              {eventSpecies.map(sp => (
+                <div key={sp.id} className={styles.speciesRow}>
+                  <span className={`${styles.speciesName} entity`}>{sp.name}</span>
+                  <span className={styles.speciesPop}>
+                    {formatPop(sp.pop)}<Trend change={sp.change} />
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button className={styles.viewAll}>View all →</button>
+          </div>
+
+          <div className={styles.splitRight}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionLabel}>Ecosystem</span>
+            </div>
+            <div className={styles.biomeList}>
+              {d.biomes.map(b => (
+                <div key={b.id} className={styles.biomeRow}>
+                  <span
+                    className={styles.biomeRowDot}
+                    style={{ color: BIOME_COLORS[b.id] }}
+                  >●</span>
+                  <span className={`${styles.biomeRowName} entity`}>{b.name}</span>
+                  <StatusLabel status={b.status} />
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 

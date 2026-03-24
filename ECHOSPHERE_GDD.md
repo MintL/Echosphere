@@ -1,5 +1,5 @@
 # ECHOSPHERE - Game Design Document
-*Version 1.6 - Second Review Fixes Applied*
+*Version 2.1 - Home Screen, Event Card Hierarchy, and Research Strip Updated*
 
 ---
 
@@ -563,18 +563,68 @@ Over time, some species adapt to live in multiple biomes. These become ecologica
 
 ## Time Model
 
-The game runs on an accelerated internal clock. One in-game cycle represents a meaningful period of ecological change - roughly equivalent to a season.
+The game runs on an accelerated internal clock. One in-game cycle represents a meaningful period of ecological change.
 
-- **Real time to in-game time:** Approximately 1 hour real = 1 cycle in-game
+- **Cycle length:** 30 minutes real time = 1 cycle in-game
 - **Cycle calculation:** Cycles are calculated client-side on app open. The simulation runs in batch for all elapsed cycles since last visit, then saves the new state to IndexedDB.
-- **Cap:** The simulation runs a full batch up to a maximum of 200 elapsed cycles. Beyond 200 cycles the simulation stops and the world is presented as it was at cycle 200. No approximation is attempted - approximating an 11+ species food web produces misleading results. If the player was away long enough to exceed the cap, the writing acknowledges it directly:
+- **Cap:** The simulation runs a full batch up to a maximum of 200 elapsed cycles. Beyond 200 cycles the simulation stops and the world is presented as it was at cycle 200. No approximation is attempted. If the player was away long enough to exceed the cap, the writing acknowledges it directly:
 
 > *You were away for a long time. The station could only track reliably up to 200 cycles ahead. The world you return to reflects that point - what happened after is unknown.*
 
 JavaScript can run hundreds of Lotka-Volterra iterations in milliseconds so the 200 cycle full simulation is not a performance concern.
-- **Visible time:** The app shows current cycle, season analog, and approximate time since last visit.
+
+- **Visible time:** The app shows current cycle and approximate time since last visit.
 
 Long absences should feel significant but not punishing. The world does not collapse because the player was gone. But things will have happened.
+
+### Event Frequency
+
+Most cycles generate no surfaced events. The simulation ticks quietly - populations shift, borders drift, nothing crosses a significance threshold worth reporting. Event frequency varies by game stage:
+
+- **Early game:** One observation event every 3-5 cycles. The ecosystem is simple and the player lacks context for small changes to feel significant.
+- **Mid game:** An event every 1-3 cycles. The food web is complex enough that something is always shifting.
+- **Late game:** Variable. Long quiet periods punctuated by dramatic bursts during cascade events or succession arcs.
+
+The significance score system controls event frequency. Recently surveyed biomes generate more events temporarily - the player can tune their own event frequency through research choices.
+
+### Pacing Philosophy
+
+The goal is pull not push. Players should want to open the app because something interesting might have happened - not feel obligated to open it to avoid losing progress. There is no penalty for absence beyond the world having continued without you.
+
+Natural return points are created by:
+- Research projects completing in hours that map to real daily rhythms
+- Events that escalate over cycles creating their own urgency
+- Notifications that report genuinely interesting things in researcher voice
+
+**Project pacing targets:**
+- Short projects (1-2 cycles): 30-60 minutes. Always available early game.
+- Medium projects (4-6 cycles): 2-3 hours. The workhorse of mid game.
+- Long projects (10-15 cycles): 5-8 hours. Overnight or work-day commitments.
+
+### Project Time Display
+
+Research projects display approximate real time remaining rather than cycle counts. Calculated from cycles in the background but presented in human terms:
+
+```javascript
+function cyclesToApproxTime(cyclesRemaining, cycleMinutes = 30) {
+  const minutesRemaining = cyclesRemaining * cycleMinutes
+
+  if (minutesRemaining < 60) return "less than an hour"
+  if (minutesRemaining < 90) return "about an hour"
+  if (minutesRemaining < 150) return "a couple of hours"
+  if (minutesRemaining < 300) return "a few hours"
+  if (minutesRemaining < 480) return "several hours"
+  if (minutesRemaining < 720) return "about half a day"
+  return "about a day"
+}
+```
+
+In the UI:
+> *Vellin behavioral study - results in a few hours*
+> *Highgrowth initial survey - results in about an hour*
+> *Mordath long-term monitoring - results in about half a day*
+
+Deliberately imprecise. Feels like the researcher's own estimate rather than a system readout. Maps naturally to how people think about their day. No ticking countdown - no compulsion to stay in the app.
 
 ---
 
@@ -583,6 +633,8 @@ Long absences should feel significant but not punishing. The world does not coll
 ### Philosophy
 The game explains itself through experience, not instruction. No tutorial prompts, no feature explanations, no difficulty selection. The player arrives at an unknown world and the world reveals itself over time.
 
+The first 10 cycles are scripted and happen entirely within the first session - one after another without waiting for real time. This gives the player a complete introduction to the ecosystem in a single sitting of 15-20 minutes. After cycle 10 the game transitions to real-time cycles at 30 minutes each.
+
 ### The First Screen
 Just the researcher name input. Sparse, understated:
 
@@ -590,42 +642,56 @@ Just the researcher name input. Sparse, understated:
 > *A research station has been established.*
 > *Enter your name to begin.*
 
-One text input. The player types their name. Cycle 1 begins immediately.
+One text input. The player types their name. The scripted onboarding begins immediately.
 
-### The First Session
+### Scripted Onboarding - Cycles 1 to 10
+
+These cycles happen in sequence during the first session. Each one advances automatically after the player reads and interacts with the current state. The player is never waiting for real time to pass.
 
 **Cycle 1 - Arrival:**
-> *Cycle 1*
-> *I've reached the site. The region is larger than the survey suggested. Three distinct environmental zones visible from the ridge - a dense low-lying area to the north, exposed and bright to the south, and something darker further east that I can't make out yet. No signs of life from this distance. Starting tomorrow.*
+> *I've reached the site. The region is larger than the survey suggested. Three distinct environmental zones visible - a dense upper layer to the north, something darker and lower beneath it, and exposed harsh terrain to the east. No signs of life from this distance. Starting tomorrow.*
 
-No ecosystem overview. No species list. No biome map. The player sees what the researcher sees.
+The player places their first two observation posts. No instruction - just two empty tool slots and three biome names to choose from.
 
-**Cycle 2 - First Sighting:**
-> *Something in the southern zone today. Pale, low to the ground, moving in a group. Gone before I could get closer. Made a note.*
+**Cycle 2-3 - First sightings:**
+First unknown species appears in the zone covered by an observation post. Sparse event, no name, no detail. The species book gets its first near-empty entry.
 
-The species book gets its first entry - unnamed, almost empty. The emptiness is exciting rather than frustrating because the writing sells the mystery.
+The player is prompted to place their sample collector. Again no instruction - just the tool and the unknown species entry in the book.
 
-### Early Game Structure
-The first several real-time hours follow a natural arc:
+**Cycle 4-5 - Environment:**
+First biome readings from the environmental sensor. A brief characterization of conditions. The player begins to understand the three zones have different characters.
 
-- **Cycle 1:** Arrive, name researcher, see the three zones, place first observation posts
-- **Cycle 2-3:** First creature sighting, place sample collector on first noticed creature
-- **Cycle 4-6:** Place environmental sensor, first biome readings arrive
-- **Cycle 7-10:** First naming event, species book begins filling
-- **Cycle 10+:** First decision events, enough context to care
+**Cycle 6-7 - More sightings, first suggestion:**
+Second unknown species spotted. The ecosystem generates the first research project suggestion: an initial study of the first observed species. The player sees the project screen for the first time.
 
-### The First Naming
-After three or four sightings of the same creature, the journal entry shifts:
+**Cycle 8-9 - First project completes:**
+The initial study project completes. The first species gets a name and role confirmed. The species book entry fills in. This is the first moment of genuine satisfaction - you studied something and learned what it is.
 
-> *Cycle 7*
-> *The pale group again - fifth sighting now. They seem to favor the southern border in the early cycles. I keep calling them "the pale ones" in my notes which is getting tedious. Vorrith. That feels right. I'll call them Vorrith.*
+**Cycle 10 - Transition:**
+A brief log entry marks the transition:
 
-No popup. No prompt. The name appears in the narrative. The player can tap it to rename if they want.
+> *Ten cycles in. The station is establishing itself. I'm starting to understand this place - barely. The real work starts now.*
+
+Real-time cycles begin. The next cycle will take 30 minutes. The player closes the app knowing something is happening without them.
 
 ### What the Player Should Feel After Session One
-Not informed. Not tutored. Just curious. They should close the app thinking: *what was that thing in the southern zone? What's in that dark eastern area? What do the Vorrith eat?*
 
-Questions, not answers. That is the correct emotional state for everything that follows.
+Not informed. Not tutored. Just curious and slightly attached. They named something. They have a project result sitting in their log. They know there are two more unknown species out there.
+
+They should close the app thinking: *what is that second thing I spotted? What does the Vellin eat? What's happening while I'm gone?*
+
+Questions, not answers. Attachment, not obligation. That is the correct emotional state for everything that follows.
+
+### Notifications After Onboarding
+
+Once real-time cycles begin, notifications become the primary pull mechanism. They should feel like messages from a field camera - curious and specific, never pressuring:
+
+> *Something new in Highgrowth. Haven't seen it before.*
+> *Vellin behavioral study complete.*
+> *The Mordath has moved. Highgrowth secondary consumers are already responding.*
+> *Keth numbers are unusual this cycle. Worth checking.*
+
+Notifications fire when significant events occur or projects complete. Never on a timer. Never to remind the player the game exists. Only when something actually happened.
 
 ---
 
@@ -1090,18 +1156,20 @@ The player who opens the app after a long absence sees the most critical situati
 
 ---
 
+## Resources
+
 Two resources drive the active session layer. They come from different sources and are spent on different things, creating a natural tension between patient research and direct intervention.
 
 ### Field Data
-Generated passively by active tools - observation posts and environmental sensors produce it slowly over time. Spent on infrastructure and information:
-- Unlocking and placing new tools
+Generated passively by active tools - observation posts and environmental sensors produce it slowly over time. Also generated by long-term monitoring and resource extraction research projects. Spent on:
+- Research projects (species studies, biome surveys, hazard assessments)
+- Station upgrades
 - Researching catalog candidates before introduction
-- Tool upgrades (future expansion)
 
-Field Data is the patient researcher's resource. It rewards having tools well placed and sessions that check in regularly.
+Field Data is the patient researcher's resource. It rewards having tools well placed, running active projects, and checking in regularly.
 
 ### Specimens
-Generated by sample collectors and triggered by specific events - a successful migration, a population milestone, a rare interaction observed. Rarer and more valuable than field data. Spent on direct interventions:
+Generated by sample collectors, resource extraction projects, and specific events - a successful migration, a population milestone, a rare interaction observed. Rarer and more valuable than field data. Spent on direct interventions:
 - Introducing a catalog species to fill a vacant niche
 - Guiding an evolution when the opportunity arises
 - Supporting a collapsing population during a crisis
@@ -1109,7 +1177,308 @@ Generated by sample collectors and triggered by specific events - a successful m
 Specimens are the interventionist's resource. They are precious and every spend is a commitment.
 
 ### Resource Tension
-Some players will hoard specimens and intervene constantly. Others will spend everything on field data researching candidates thoroughly before ever introducing anything. Both are valid and produce different worlds.
+Some players will hoard specimens and intervene constantly. Others will spend everything on field data running research projects and building station infrastructure. Both are valid and produce different worlds.
+
+---
+
+## Research Projects
+
+Research projects are the primary active layer of the game. They give the player something meaningful to do every session beyond reading events. Projects are suggested by the ecosystem based on current simulation state - not self-assigned busywork but responses to things the world has noticed.
+
+### Core Rules
+- One project active at a time
+- A queue of 2-3 suggestions always ready when the current project completes
+- Queue suggestions reflect the current ecosystem state when they are generated
+- Projects cost field data to initiate and run for a set number of cycles
+- Station upgrades reduce cost and duration across all project tiers
+
+### Project Types
+
+**Species Studies**
+Study individual species to advance their knowledge milestones. The primary driver of species book progression - milestones do not advance through passive observation alone.
+
+Four tiers corresponding to the four non-automatic milestones:
+
+| Tier | Milestone | Base Cost | Base Duration | Reward |
+|------|-----------|-----------|---------------|--------|
+| Initial study | Role identified + Named | 40 field data | 3 cycles | Name coined, role confirmed, sample collector slot unlocked |
+| Behavioral study | Behavior mapped | 120 field data | 6 cycles | Movement patterns, predator relationships, evolution guidance unlocked |
+| Population analysis | Population modeled | 280 field data | 12 cycles | Full population dynamics, intervention cost reduced for this species |
+
+The ecosystem suggests species studies when unknown species have been observed multiple times or when a known species reaches a threshold that warrants deeper study.
+
+Unknown species appear in events immediately but are described without name or role:
+> *Something in the upper Highgrowth again. Third sighting this week. Moves in groups. I don't know what it is yet.*
+
+After the initial study project completes:
+> *Study complete. The canopy species are grazers - feeding on Feltmoss across the upper growth. Fast-moving, group behavior, likely prey of something larger. I'm calling them Vellin.*
+
+**Ecological Surveys**
+Study a biome to advance its survey milestones and fill the biome book. Reveals hidden hazards seeded at world creation. Applies a temporary significance boost to events from that biome.
+
+| Tier | Milestone | Base Cost | Base Duration | Reward |
+|------|-----------|-----------|---------------|--------|
+| Initial survey | Characterized | 60 field data | 4 cycles | Basic conditions documented, significance boost 20 cycles |
+| Deep survey | Mapped | 180 field data | 10 cycles | Subzones identified, moderate hazards revealed, significance boost 30 cycles |
+| Monitoring setup | Monitored | 400 field data | 20 cycles | Passive field data income, hazard early warning active, significance boost permanent |
+
+**Long-term Monitoring**
+Extended projects that generate passive field data income while running and produce a detailed report at completion. Used for tracking rare or important species like the Mordath.
+
+- High upfront cost, long duration (20-40 cycles)
+- Generates small field data income each cycle while active
+- Completion report surfaces patterns invisible to normal observation
+- Tracking data added to species page as a historical record
+
+Example: A Mordath tracking program running for 30 cycles produces:
+> *Monitoring complete. The Mordath spent 63% of observed cycles in Highgrowth, moving to Understory when Keth population exceeded 280. Three previously unobserved hunting behaviors documented.*
+
+**Resource Extraction**
+Deploy collection equipment to gather specimens directly. Simpler and more predictable than waiting for event-triggered specimen generation.
+
+- Moderate cost, moderate duration (6-10 cycles)
+- Returns a fixed specimen amount on completion
+- Biome-specific - different biomes yield different amounts based on health and diversity
+- Suggested when specimen reserves are low or a major intervention is upcoming
+
+**Hazard Assessment**
+Survey a specific fringe zone or biome area for environmental risks. Provides early warning capability for equipment-destroying events.
+
+- Low to moderate cost, short duration (3-6 cycles)
+- Reveals hazard rating for the assessed zone
+- For the next N cycles tool destruction events in that zone are telegraphed one cycle in advance
+- Rating decays over time, encouraging repeat assessments
+
+### Project Suggestion Logic
+
+The ecosystem generates project suggestions based on current simulation state. Suggestions are contextually relevant - they reflect what is actually happening:
+
+```javascript
+function generateProjectSuggestions(state) {
+  const suggestions = []
+
+  // Suggest species study if unknown species observed 3+ times
+  for (const species of state.species) {
+    if (!species.milestones.roleIdentified &&
+        species.history.sightings >= 3) {
+      suggestions.push(createSpeciesStudyProject(species, "initial"))
+    }
+  }
+
+  // Suggest behavioral study if species is well known and behavior unmapped
+  for (const species of state.species) {
+    if (species.milestones.roleIdentified &&
+        !species.milestones.behaviorMapped &&
+        species.history.cyclesObserved > 15) {
+      suggestions.push(createSpeciesStudyProject(species, "behavioral"))
+    }
+  }
+
+  // Suggest biome survey if biome has active events but is uncharacterized
+  for (const biome of Object.values(state.biomes)) {
+    if (!biome.milestones.characterized &&
+        hasRecentEvents(biome, state)) {
+      suggestions.push(createBiomeSurveyProject(biome, "initial"))
+    }
+  }
+
+  // Suggest resource extraction if specimens below threshold
+  if (state.researcher.resources.specimens < 5) {
+    suggestions.push(createResourceExtractionProject(state))
+  }
+
+  // Suggest hazard assessment if tool was recently destroyed
+  if (hasRecentToolDestruction(state)) {
+    suggestions.push(createHazardAssessmentProject(state))
+  }
+
+  // Return top 3 by relevance score, always keep queue at 2-3
+  return suggestions
+    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .slice(0, 3)
+}
+```
+
+### Project Data Model
+
+```javascript
+{
+  id: "proj_0012",
+  type: "speciesStudy",           // speciesStudy | ecologicalSurvey | monitoring | extraction | hazardAssessment
+  targetId: "vellin",             // species id, biome id, or fringe id
+  targetMilestone: "roleIdentified",
+  startCycle: 34,
+  duration: 3,                    // cycles to complete
+  fieldDataCost: 40,
+  passiveIncomePerCycle: 0,       // non-zero for monitoring projects
+  completionEffects: [
+    { type: "advanceMilestone", targetId: "vellin", milestone: "roleIdentified" },
+    { type: "addBookEntry", targetId: "vellin", text: "..." },
+    { type: "coinName", targetId: "vellin", suggestedName: "Vellin" }
+  ],
+  completed: false,
+  completedCycle: null
+}
+```
+
+---
+
+## Biome Book
+
+The biome book parallels the species book. Each biome starts with almost no information and fills through ecological survey projects. The knowledge accumulated has practical consequences - it improves event quality, reveals hazards, and provides genuine intelligence about future risks.
+
+### Discovery Arc
+
+**Located - automatic:**
+> **Highgrowth** - *First observed: Cycle 1*
+> Dense canopy growth, light-rich. Estimated large area. Multiple species present. Conditions appear favorable but I haven't characterized them properly yet.
+>
+> *Survey milestones:*
+> Located - - - -
+
+**Characterized - after initial survey:**
+> **Highgrowth**
+> Fast growth cycles, high competition for light. Feltmoss dominates surface coverage. Temperature moderate, moisture high. The canopy layers are denser than I initially estimated - there may be species I'm missing in the upper sections.
+>
+> *Survey milestones:*
+> Located - Characterized - - -
+
+**Mapped - after deep survey:**
+> **Highgrowth**
+> Full characterization complete. Three distinct vertical zones within the biome. Species distribution follows light gradient precisely. Biome health closely tied to Feltmoss coverage. Thermal vents detected in the southern section - minor activity currently but worth monitoring.
+>
+> *Survey milestones:*
+> Located - Characterized - Mapped -
+
+**Monitored - after monitoring setup:**
+> **Highgrowth**
+> Long-term monitoring active. Continuous readings across all zones. The thermal vent activity in the south has been stable for 12 cycles but the readings are trending upward. I'm watching it.
+>
+> *Survey milestones:*
+> Located - Characterized - Mapped - Monitored
+
+### Hazard System
+
+**Seeding at game start:**
+Each biome is seeded with 2-4 hidden hazards when the world is created. These are permanent features of that world, unique per playthrough. Hazard severity determines which survey milestone reveals them:
+
+- Critical hazards: revealed at Characterized (second tier)
+- Moderate hazards: revealed at Mapped (third tier)
+- Minor hazards: revealed at Monitored (fourth tier)
+
+More severe hazards are revealed earlier - the system ensures dangerous things are findable without requiring complete research.
+
+```javascript
+function seedBiomeHazards(biome, randomSeed) {
+  const hazardPool = getHazardPoolForBiome(biome.id)
+  const count = 2 + Math.floor(seededRandom(randomSeed) * 3)
+
+  biome.hiddenHazards = hazardPool
+    .sort(() => seededRandom(randomSeed) - 0.5)
+    .slice(0, count)
+    .map(hazard => ({
+      ...hazard,
+      revealedByMilestone: assignRevealMilestone(hazard.severity),
+      triggered: false
+    }))
+}
+
+function assignRevealMilestone(severity) {
+  if (severity === "critical") return "characterized"
+  if (severity === "moderate") return "mapped"
+  return "monitored"
+}
+```
+
+**Hazard trigger checking:**
+Each cycle the hazard system checks trigger conditions against current state:
+
+```javascript
+function checkHazards(state) {
+  const events = []
+
+  for (const biome of state.biomes) {
+    // Check known hazards - player has warning capability
+    for (const hazard of biome.knownHazards) {
+      if (!hazard.triggered && evaluateTrigger(hazard.triggerCondition, state)) {
+        hazard.triggered = true
+        events.push(createHazardEvent(hazard, biome, state, false))
+      }
+    }
+
+    // Check hidden hazards - no warning, surprise impact
+    for (const hazard of biome.hiddenHazards) {
+      if (!hazard.triggered && evaluateTrigger(hazard.triggerCondition, state)) {
+        hazard.triggered = true
+        biome.knownHazards.push({...hazard, discoveredCycle: state.cycle})
+        biome.hiddenHazards = biome.hiddenHazards.filter(h => h.id !== hazard.id)
+        events.push(createHazardEvent(hazard, biome, state, true))
+      }
+    }
+  }
+
+  return events
+}
+```
+
+**Known hazard event (surveyed):**
+> *Cycle 67 - The southern Highgrowth thermal vents have become active. You noted their presence in cycle 34. Equipment in that zone is at risk.*
+
+**Hidden hazard event (unsurveyed):**
+> *Cycle 67 - Unexpected thermal activity in southern Highgrowth. Equipment destroyed. The station had no data on this.*
+
+**Biome state object:**
+```javascript
+{
+  id: "highgrowth",
+  name: "Highgrowth",
+  health: 0.82,
+  borderPositions: {},
+
+  milestones: {
+    located: true,
+    characterized: false,
+    mapped: false,
+    monitored: false
+  },
+
+  activeEffects: [
+    {
+      type: "significanceBoost",
+      multiplier: 1.5,
+      expiresAtCycle: 54
+    }
+  ],
+
+  knownHazards: [
+    {
+      id: "thermal_vents_south",
+      name: "Southern thermal vents",
+      discoveredCycle: 34,
+      severity: "moderate",
+      triggerCondition: "biomeHealth < 0.4",
+      triggered: false
+    }
+  ],
+
+  hiddenHazards: [
+    {
+      id: "root_instability",
+      revealedByMilestone: "mapped",
+      severity: "low",
+      triggerCondition: "understoryHealth < 0.3 && cycle > 100",
+      triggered: false
+    }
+  ],
+
+  bookEntries: [
+    {
+      cycle: 1,
+      text: "Dense canopy growth, light-rich..."
+    }
+  ]
+}
+```
 
 ---
 
@@ -1117,21 +1486,21 @@ Some players will hoard specimens and intervene constantly. Others will spend ev
 
 Species do not have a visible level number. Instead each species entry in the species book shows a set of research milestones that fill in over time. Milestones are both a progress indicator and an intervention unlock system - no separate UI needed.
 
+Milestones do not advance through passive observation alone. They require deliberate research projects. Passive observation generates the events and context that make research projects feel meaningful and timely - but the knowledge itself is earned through active study.
+
 ### Milestone Progression
 
 > *First observed - Named - Role identified - Behavior mapped - Population modeled*
 
 Each milestone is either greyed out or filled in. Greyed out milestones are as interesting as filled ones - they tell the researcher what is still unknown.
 
-**First observed** - unlocked on first sighting. Basic species book entry created.
+**First observed** - automatic on first sighting. Basic species book entry created. Species appears in events as unknown.
 
-**Named** - unlocked after several sightings. The researcher coins a name in the journal. Player can rename by tapping the name.
+**Named + Role identified** - unlocked together by completing an initial species study project. The researcher coins the name in the project result. Sample collector can now be attached.
 
-**Role identified** - ecological role confirmed through observation. Sample collector can now be attached.
+**Behavior mapped** - unlocked by completing a behavioral study project. Movement patterns, predator relationships, biome preferences confirmed. Evolution guidance now possible.
 
-**Behavior mapped** - movement patterns, predator/prey relationships, biome preferences understood. Evolution guidance now possible.
-
-**Population modeled** - population dynamics understood, cycle rhythms mapped. Full intervention options unlocked. Specimens cost reduced for this species.
+**Population modeled** - unlocked by completing a population analysis project. Full population dynamics understood, cycle rhythms mapped. Full intervention options unlocked. Specimens cost reduced for this species.
 
 ### How Milestones Advance
 - Species appearing in events
@@ -1234,52 +1603,75 @@ The home screen is the game. Most sessions never leave it. Information is organi
 ```
 ---------------------------------
 ECHOSPHERE                  [Log]
-Dr. Voss - Cycle 94
-Away 6 hours - 6 cycles passed
+Cycle 94 · Away 6h · 6 cycles passed
+FIELD DATA 340  SPECIMENS 12
 ---------------------------------
-RESOURCES
-Field Data: 340    Specimens: 12
----------------------------------
-EVENTS  (2 pending)
+EVENTS  2
 
-[Event card - urgent]
-The [Vellin] population is
-collapsing in [Highgrowth].
-Keth pressure severe.
-[Intervene]  [Observe]
+[Crisis card - filled background, left border accent]
+Vellin population collapsing
+The numbers are bad. Keth pressure has
+been building for three cycles.
+[Highgrowth]        I should respond →
 
-[Event card - observation]
-A small group of [Vellin] have
-crossed into [Understory] for
-the first time.
+[Observation card - flat, no fill]
+Vellin crossed into Understory
+for the first time.
+[Understory fringe]                  ›
 ---------------------------------
-ECOSYSTEM
-Highgrowth    [||||||||  ]  stable
-Understory    [||||||    ]  rising
-Scorch Flats  [||||      ]  stress
+RESEARCH
 
-SPECIES
-[Vellin]         847   up 12%
-[Keth]           203   down 8%
-[Feltmoss]      1840   stable
+Vellin behavioral study
+results in a few hours        [=====  ]
 ---------------------------------
-TOOLS
-Obs. Post - [Highgrowth]     active
-Obs. Post - [Scorch Flats]   active
-Sample Collector - [Vellin]  active
-Env. Sensor - [Understory]   active
+SPECIES              | ECOSYSTEM
+                     |
+Vellin    340  ↓     | ● Highgrowth  stable
+Keth      203  ↑     | ● Understory  rising
+                     | ● Scorch Flats  stress
+View all →           |
 ---------------------------------
 ```
 
-**Return header** - "Away 6 hours - 6 cycles passed" immediately orients the player before they read a single event. Reinforces that the world kept running without them.
+**Return header** - "Away 6h · 6 cycles passed" immediately orients the player before they read a single event. Reinforces that the world kept running without them.
 
-**Resources** - field data and specimens always visible, always current.
+**Resources** - field data and specimens always visible in the header, always current.
 
-**Events** - shown above ecosystem because events are why the player opened the app. Most urgent first. Each card contains the event text with linked species and biome names, and any available action buttons inline.
+**Events** - the priority section. Shown above everything else when present. Crisis and observation events are structurally distinct - different card shapes, not just different colors. See Event Cards below.
 
-**Ecosystem** - biome health as a simple text indicator (stable, rising, stress, critical) with a visual bar requiring no canvas. Species listed with current population and cycle-over-cycle directionality. Everything linked.
+**Research** - shown below events as a strip, not a card. Lower visual weight than event cards - it is a persistent status indicator, not a notification. Shows project name, an approximate time label, and a progress bar. The bar and the time label must not contradict each other. Always tappable - opens the project screen whether a project is active or not.
 
-**Tools** - four lines, status at a glance. Tap any tool to manage it.
+**No active project state:**
+```
+RESEARCH
+
+No active project.
+3 studies ready to begin.            →
+```
+
+**Species and Ecosystem** - shown side by side in two columns to conserve vertical space. Species on the left, ecosystem on the right. Only species involved in active events appear in the species column. All three biomes always appear in the ecosystem column regardless of event state - a biome under stress should always be visible even if no event has fired for it yet.
+
+**View all species** - a single link at the bottom of the species column opens the full species list.
+
+**Quiet sessions** - if there are no pending events the events section disappears entirely. Nothing fills the space. The emptiness is intentional - a quiet home screen is a reward for attentive play, not a loading state. The research strip and the species/ecosystem columns remain.
+
+### Event Cards
+
+Crisis and observation events are structurally distinct, not just chromatically. They are different shapes asking the player to do different things.
+
+**Crisis cards** have a filled background, a left border accent, and a footer row. The footer contains a biome chip on the left and a researcher-voice CTA on the right. The CTA escalates with the urgency score - which is already computed by the decision system and is relative to the species' rate of decline, not raw cycle count:
+
+- Fresh crisis: *I should respond →*
+- Mid-escalation: *I need to decide →*
+- Near-expiry: *Can't ignore this →*
+
+A fast-collapsing population may escalate through all three tiers in 4-5 cycles. A slow-burning competition event may stay at tier one for 8 or more. The threshold is the rate of change, not a timer.
+
+When a decision expires - resolved during an offline batch while the player was away - the CTA is replaced by a past-tense outcome line in the same footer position: *resolved while you were away.* The card shape stays the same; the active voice drains out of it. This is distinct from a decision the player actively ignored, which becomes a log entry in a different register.
+
+**Observation cards** are flat and borderless with no footer row. A biome chip and a simple arrow are the only affordances. They report; they do not ask.
+
+The structural difference in card shape - footer row present or absent - communicates the distinction before the player reads a word.
 
 ### Secondary Screens
 
@@ -1287,13 +1679,26 @@ These are not tabs. They are detail views that open from home and return to home
 
 **Species Page** - opens by tapping any species name anywhere in the game. Shows the full species book entry - journal text accumulated over time, research milestones, ecological role, biome, population history, known interactions. All referenced species and biomes are linked. Rename option available by tapping the species name at the top.
 
-**Biome Page** - opens by tapping any biome name. Shows biome health history, current conditions, species present, active tools, recent events in that biome.
+**Biome Page** - opens by tapping any biome name. Shows biome health history, current conditions, species present, active tools, survey milestones, biome book entries, and known hazards. Recent events in that biome listed at the bottom.
 
-**Decision Screen** - opens when a significant decision event fires. Full event text, context from researcher history, two or three clearly labeled choices with described consequences. Returns to home after decision is made. Designed to feel weighty - this is an irreversible or significant moment.
+**Project Screen** - opens by tapping the research card on the home screen. Always accessible whether a project is active or not.
 
-**Catalog / Introduction Screen** - opens when a vacant niche event fires. Shows the three candidate species with their current knowledge milestone status, field notes accumulated through research, and the introduction button. Costs and consequences clearly shown. Irreversible action requires a confirmation step.
+When a project is active:
+- Shows project name, type, target species or biome
+- Cycles remaining and expected completion
+- Expected rewards on completion
+- Below the active project: 2-3 queued suggestions shown as browsable cards with cost, duration, and reward. Informational only - cannot initiate while another project is running.
 
-**Researcher Log** - opens from the [Log] button in the header. A drawer or full screen of chronological log entries - decisions made, species named, extinctions recorded, eras marked. Fully linked. Read-only reference.
+When no project is active:
+- Shows 2-3 suggestion cards directly
+- Each card shows project name, type, cost, duration, and expected reward
+- Tap any suggestion card to initiate it
+
+**Decision Screen** - opens when a significant decision event fires. Full event text, context from researcher history, two or three clearly labeled choices with described consequences. Returns to home after decision is made.
+
+**Catalog / Introduction Screen** - opens when a vacant niche event fires. Shows the three candidate species with their current knowledge milestone status, field notes accumulated through research, and the introduction button. Irreversible action requires a confirmation step.
+
+**Researcher Log** - opens from the [Log] button in the header. Chronological log entries - decisions made, species named, extinctions recorded, project completions, era markers. Fully linked. Read-only reference.
 
 ### Linking Convention
 
