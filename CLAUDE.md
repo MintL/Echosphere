@@ -125,6 +125,22 @@ src/
 - Project time shown as approximate human language ("a few hours") not cycle counts
 - Station upgrades reduce project cost and duration
 
+## Simulation Testing Criteria
+
+When running `scripts/simulate.js`, good output across 10 runs of 500 cycles each looks like:
+- No species extinct in the first 50 cycles
+- No population exceeding 10000 (explosion)
+- 30-100 events fired per 500 cycles
+- At least 8/11 species surviving to cycle 500
+- Visible oscillation in predator/prey pairs (not flat lines)
+
+Bad output that requires coefficient tuning:
+- More than 3 extinctions before cycle 100
+- Any population explosion above 10000
+- Fewer than 10 events in 500 cycles (too quiet)
+- More than 150 events in 500 cycles (event flood)
+- Any species at flat stable population for 200+ cycles (dead simulation)
+
 ## What NOT to Do
 
 - Don't add a visual map. The GDD explicitly specifies text-based spatial representation.

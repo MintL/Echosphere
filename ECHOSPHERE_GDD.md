@@ -1644,7 +1644,7 @@ View all →           |
 
 **Resources** - field data and specimens always visible in the header, always current.
 
-**Session summary** - shown below the header when returning after time away. A brief narrative lead (1-3 sentences) covering the most significant things that happened since last session, written in researcher voice. Tapping "Read full summary →" opens a chronological view of everything that happened — all event types including observations — scoped to the elapsed cycles. Dismissable once read; disappears on quiet sessions with no elapsed events. This is the primary home for observation events — they do not appear as cards on the home screen.
+**Session summary banner** - shown below the header when returning after time away and there are new events to review. A single tappable line: "Since you were away · N events need attention →". Tapping routes the player to the Session Summary screen before they reach the home screen. If there are no events from the elapsed cycles the banner is not shown and the player lands directly on home.
 
 **Events** - shown below the session summary. Crisis and decision events only — observation events live in the session summary. Each card is unresolved and actionable. The section disappears entirely when there are no pending crisis or decision events.
 
@@ -1709,7 +1709,9 @@ When no project is active:
 
 **Catalog / Introduction Screen** - opens when a vacant niche event fires. Shows the three candidate species with their current knowledge milestone status, field notes accumulated through research, and the introduction button. Irreversible action requires a confirmation step.
 
-**Researcher Log** - opens from the [Log] button in the header. Chronological log entries - decisions made, species named, extinctions recorded, project completions, era markers. Fully linked. Read-only reference.
+**Session Summary Screen** - the primary entry point when returning after time away. A chronological journal of everything that happened during the elapsed cycles, written in researcher voice. All event types appear here - observations, decisions, crises, project completions. Decision events that are still live show a "I should weigh in →" CTA. Decisions that resolved offline show a past-tense outcome. The player can back out to the home screen at any time. Only shown when there are events from the elapsed cycles.
+
+**Researcher Log** - opens from the [Log] button in the header. A searchable archive of all events across the entire playthrough. Not meant to be read linearly - it is a reference document. Species pages and biome pages pull relevant log entries automatically, making species- or biome-specific history easy to find without searching the full log. Era-based grouping keeps the log navigable over long playthroughs.
 
 ### Linking Convention
 

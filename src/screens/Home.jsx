@@ -167,10 +167,11 @@ export default function Home() {
         </div>
       </header>
 
-      {sessionActionable.length > 0 && (
+      {(d.session?.entries?.length > 0) && (
         <button className={styles.sessionStrip} onClick={() => navigate('/summary')}>
-          <span className={styles.sessionStripCount}>{sessionActionable.length}</span>
-          {sessionActionable.length === 1 ? ' event needs attention' : ' events need attention'} →
+          {sessionActionable.length > 0 ? (
+            <>Since you were away · <span className={styles.sessionStripCount}>{sessionActionable.length}</span>{sessionActionable.length === 1 ? ' event needs attention' : ' events need attention'} →</>
+          ) : 'Since you were away · read what happened →'}
         </button>
       )}
 
