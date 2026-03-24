@@ -1,0 +1,170 @@
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.container {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: slideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.closing {
+  animation: slideDown 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.inner {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 24px 14px;
+  z-index: 10;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--bg), transparent);
+  pointer-events: none;
+}
+
+.backBtn {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;
+  display: block;
+  transition: color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--ink);
+}
+
+.headerTitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.headerSub {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+
+/* ── Entry list ── */
+.entries {
+  padding: 32px 24px 64px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Single entry ── */
+.entry {
+  padding: 18px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 55%, transparent);
+}
+
+.entry:last-child {
+  border-bottom: none;
+}
+
+.entryMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.entryCycle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.entryType {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.entryText {
+  font-family: var(--font-prose);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+/* ── Entry type variants ── */
+.decision {
+  border-left: 2px solid color-mix(in oklch, var(--accent) 40%, transparent);
+  padding-left: 14px;
+}
+
+.decision .entryType { color: var(--accent); }
+
+.crisis {
+  border-left: 2px solid color-mix(in oklch, var(--crisis) 40%, transparent);
+  padding-left: 14px;
+}
+
+.crisis .entryType   { color: var(--crisis); }
+
+/* ── Actionable CTA ── */
+.entryCta {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 6px 0;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.entryCta:hover {
+  opacity: 0.65;
+}
+
+.entryCta_crisis   { color: var(--crisis); }
+.entryCta_decision { color: var(--accent); }

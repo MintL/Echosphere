@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import styles from './Home.module.css'
 
 const BIOME_COLORS = {
@@ -18,6 +19,56 @@ const MOCK = {
   cycle: 94,
   away: { hours: 6, cycles: 6 },
   resources: { fieldData: 340, specimens: 12 },
+  session: {
+    cycles: 6,
+    lead: 'Vellin population dropped sharply as Keth pressure built through the upper Highgrowth. A subpopulation crossed into Understory for the first time.',
+    entries: [
+      {
+        cycle: 89,
+        type: 'observation',
+        text: 'Keth ranging further south than usual. Three individuals recorded near the Highgrowth border — further than I have seen them go. The Vellin are pulling back.',
+        speciesIds: ['keth', 'vellin'],
+      },
+      {
+        cycle: 90,
+        type: 'observation',
+        text: 'Vellin grazing patterns have shifted. They are avoiding the upper canopy entirely now, concentrating in the lower growth where Keth rarely descend. Feeding rates down.',
+        speciesIds: ['vellin', 'keth'],
+      },
+      {
+        cycle: 90,
+        type: 'decision',
+        text: 'Keth range expanding into Understory. They have pushed further than last season. This could stabilize or accelerate.',
+        speciesIds: ['keth', 'vellin'],
+      },
+      {
+        cycle: 91,
+        type: 'observation',
+        text: 'First confirmed Vellin sighting in the Understory. A group of four, moving along the border fringe. They looked displaced, not exploratory.',
+        speciesIds: ['vellin'],
+        biomeIds: ['understory'],
+      },
+      {
+        cycle: 92,
+        type: 'observation',
+        text: 'Vellin numbers in Highgrowth down significantly. Keth are following them into the lower growth now. The pressure is not easing.',
+        speciesIds: ['vellin', 'keth'],
+      },
+      {
+        cycle: 93,
+        type: 'observation',
+        text: 'Keth at the highest recorded density in Highgrowth. Feltmoss spreading unchecked in the areas Vellin have abandoned.',
+        speciesIds: ['keth', 'feltmoss'],
+        biomeIds: ['highgrowth'],
+      },
+      {
+        cycle: 94,
+        type: 'crisis',
+        text: 'Vellin population collapsing. The numbers are bad. Keth pressure has been building for three cycles and shows no sign of easing.',
+        speciesIds: ['vellin', 'keth'],
+      },
+    ],
+  },
   research: {
     active: {
       targetName: 'Vellin',
@@ -27,67 +78,38 @@ const MOCK = {
     },
     suggestionsReady: 3,
   },
-  events: [
-    {
-      id: 1,
-      urgency: 'crisis',
-      urgencyTier: 2,
-      expired: false,
-      cycle: 91,
-      title: 'Vellin population collapsing — Highgrowth',
-      body: 'The numbers are bad. Keth pressure has been building for three cycles.',
-      speciesIds: ['vellin', 'keth'],
-      biome: { id: 'highgrowth', name: 'Highgrowth' },
-    },
-    {
-      id: 3,
-      urgency: 'decision',
-      expired: false,
-      cycle: 90,
-      title: 'Keth range expanding into Understory — do you intervene?',
-      body: 'They have pushed further than last season. This could stabilize or accelerate.',
-      speciesIds: ['keth', 'vellin'],
-      biome: { id: 'understory', name: 'Understory' },
-    },
-    {
-      id: 2,
-      urgency: 'observation',
-      expired: false,
-      cycle: 88,
-      title: 'Vellin crossed into Understory for the first time.',
-      speciesIds: ['vellin'],
-      biome: { id: 'understory', name: 'Understory' },
-    },
-  ],
   biomes: [
     { id: 'highgrowth', name: 'Highgrowth',   health: 0.82, status: 'stable' },
     { id: 'understory', name: 'Understory',   health: 0.71, status: 'rising' },
     { id: 'scorch',     name: 'Scorch Flats', health: 0.44, status: 'stress' },
   ],
   species: [
-    { id: 'feltmoss',  name: 'Feltmoss',  pop: 1840, change: 2,   role: 'producer'   },
-    { id: 'nightroot', name: 'Nightroot', pop:  920, change: 0,   role: 'producer'   },
-    { id: 'scaleweed', name: 'Scaleweed', pop:  640, change: -3,  role: 'producer'   },
-    { id: 'vellin',    name: 'Vellin',    pop:  847, change: -23, role: 'consumer'   },
-    { id: 'woldren',   name: 'Woldren',   pop:  312, change: 1,   role: 'consumer'   },
-    { id: 'brack',     name: 'Brack',     pop:  178, change: -4,  role: 'consumer'   },
-    { id: 'torrak',    name: 'Torrak',    pop:   89, change: 0,   role: 'specialist' },
-    { id: 'keth',      name: 'Keth',      pop:  203, change: 18,  role: 'predator'   },
-    { id: 'skethran',  name: 'Skethran',  pop:   71, change: -2,  role: 'predator'   },
-    { id: 'grubmere',  name: 'Grubmere',  pop:  543, change: 5,   role: 'decomposer' },
-    { id: 'mordath',   name: 'Mordath',   pop:   14, change: 0,   role: 'apex'       },
+    { id: 'feltmoss',  name: 'Feltmoss',  pop: 1840, popDiff:  +10, trend: 'stable',    role: 'producer'   },
+    { id: 'nightroot', name: 'Nightroot', pop:  920, popDiff:    0, trend: 'stable',    role: 'producer'   },
+    { id: 'scaleweed', name: 'Scaleweed', pop:  640, popDiff:  -15, trend: 'declining', role: 'producer'   },
+    { id: 'vellin',    name: 'Vellin',    pop:  847, popDiff: -115, trend: 'critical',  role: 'consumer'   },
+    { id: 'woldren',   name: 'Woldren',   pop:  312, popDiff:   +5, trend: 'stable',    role: 'consumer'   },
+    { id: 'brack',     name: 'Brack',     pop:  178, popDiff:  -20, trend: 'declining', role: 'consumer'   },
+    { id: 'torrak',    name: 'Torrak',    pop:   89, popDiff:    0, trend: 'stable',    role: 'specialist' },
+    { id: 'keth',      name: 'Keth',      pop:  203, popDiff:  +90, trend: 'thriving',  role: 'predator'   },
+    { id: 'skethran',  name: 'Skethran',  pop:   71, popDiff:  -10, trend: 'declining', role: 'predator'   },
+    { id: 'grubmere',  name: 'Grubmere',  pop:  543, popDiff:  +25, trend: 'thriving',  role: 'decomposer' },
+    { id: 'mordath',   name: 'Mordath',   pop:   14, popDiff:    0, trend: 'stable',    role: 'apex'       },
   ],
 }
 
 
-function formatPop(n) {
-  return n.toLocaleString()
-}
+const TREND_ORDER = { critical: 0, declining: 1, stable: 2, thriving: 3 }
 
-function Trend({ change }) {
-  if (change > 0) return <span className={styles.trendUp}>↑</span>
-  if (change < 0) return <span className={styles.trendDown}>↓</span>
-  return <span className={styles.trendFlat}>–</span>
+function SpeciesTrend({ pop, popDiff }) {
+  const diffCls = popDiff > 0 ? styles.diffPos : popDiff < 0 ? styles.diffNeg : styles.diffNeutral
+  const diffStr = popDiff > 0 ? `+${popDiff}` : popDiff < 0 ? `${popDiff}` : '—'
+  return (
+    <span className={styles.speciesTrend}>
+      <span className={styles.speciesPop}>{pop.toLocaleString()}</span>
+      <span className={`${styles.speciesDiff} ${diffCls}`}>({diffStr})</span>
+    </span>
+  )
 }
 
 function StatusLabel({ status }) {
@@ -103,10 +125,20 @@ function StatusLabel({ status }) {
 
 export default function Home() {
   const navigate = useNavigate()
+  const location = useLocation()
   const researcher = localStorage.getItem('echosphere_researcher') || 'Researcher'
   const d = { ...MOCK, researcher }
-  const eventSpeciesIds = new Set(d.events.flatMap(ev => ev.speciesIds ?? []))
-  const eventSpecies = d.species.filter(sp => eventSpeciesIds.has(sp.id))
+
+  useEffect(() => {
+    if (!location.state?.fromSummary && d.session?.entries?.length > 0) {
+      navigate('/summary', { replace: true })
+    }
+  }, [])
+
+  const sessionActionable = (d.session?.entries ?? []).filter(e => e.type === 'crisis' || e.type === 'decision')
+  const sortedSpecies = [...d.species]
+    .sort((a, b) => (TREND_ORDER[a.trend] ?? 2) - (TREND_ORDER[b.trend] ?? 2))
+    .slice(0, 5)
 
   return (
     <div className={styles.page}>
@@ -135,61 +167,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ── Events ── */}
-      {d.events.length > 0 && (
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionLabel}>
-              Events
-              <span className={styles.sectionCount}>{d.events.length}</span>
-            </span>
-          </div>
-
-          <div className={styles.events}>
-            {d.events.map(ev => {
-              if (ev.urgency === 'crisis') return (
-                <button key={ev.id} className={styles.eventCrisis}>
-                  <span className={styles.eventTitle}>{ev.title}</span>
-                  {ev.body && <span className={styles.eventBody}>{ev.body}</span>}
-                  <div className={styles.eventFooterRow}>
-                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
-                    {ev.expired ? (
-                      <span className={styles.eventExpired}>resolved while you were away.</span>
-                    ) : (
-                      <span className={`${styles.eventCta} ${styles[`eventCtaTier${ev.urgencyTier}`]}`}>
-                        {CTA_LABELS[ev.urgencyTier]} →
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-              if (ev.urgency === 'decision') return (
-                <button key={ev.id} className={styles.eventDecision}>
-                  <span className={styles.eventTitle}>{ev.title}</span>
-                  {ev.body && <span className={styles.eventBody}>{ev.body}</span>}
-                  <div className={styles.eventFooterRow}>
-                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
-                    {ev.expired ? (
-                      <span className={styles.eventExpired}>resolved while you were away.</span>
-                    ) : (
-                      <span className={`${styles.eventCta} ${styles.eventCtaDecision}`}>
-                        I should weigh in →
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-              return (
-                <button key={ev.id} className={styles.eventObservation}>
-                  <span className={styles.eventTitle}>{ev.title}</span>
-                  <div className={styles.eventFooterRow}>
-                    <span className={styles.eventCycle}>Cycle {ev.cycle}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </section>
+      {sessionActionable.length > 0 && (
+        <button className={styles.sessionStrip} onClick={() => navigate('/summary')}>
+          <span className={styles.sessionStripCount}>{sessionActionable.length}</span>
+          {sessionActionable.length === 1 ? ' event needs attention' : ' events need attention'} →
+        </button>
       )}
 
       {/* ── Research ── */}
@@ -234,12 +216,10 @@ export default function Home() {
               <span className={styles.sectionLabel}>Species</span>
             </div>
             <div className={styles.speciesList}>
-              {eventSpecies.map(sp => (
+              {sortedSpecies.map(sp => (
                 <div key={sp.id} className={styles.speciesRow}>
                   <span className={`${styles.speciesName} entity`}>{sp.name}</span>
-                  <span className={styles.speciesPop}>
-                    {formatPop(sp.pop)}<Trend change={sp.change} />
-                  </span>
+                  <SpeciesTrend pop={sp.pop} popDiff={sp.popDiff} />
                 </div>
               ))}
             </div>
@@ -253,10 +233,6 @@ export default function Home() {
             <div className={styles.biomeList}>
               {d.biomes.map(b => (
                 <div key={b.id} className={styles.biomeRow}>
-                  <span
-                    className={styles.biomeRowDot}
-                    style={{ color: BIOME_COLORS[b.id] }}
-                  >●</span>
                   <span className={`${styles.biomeRowName} entity`}>{b.name}</span>
                   <StatusLabel status={b.status} />
                 </div>

@@ -1606,18 +1606,25 @@ ECHOSPHERE                  [Log]
 Cycle 94 · Away 6h · 6 cycles passed
 FIELD DATA 340  SPECIMENS 12
 ---------------------------------
+SINCE YOU WERE AWAY  6 cycles
+
+Vellin population dropped sharply as Keth
+pressure built through the upper Highgrowth.
+A subpopulation crossed into Understory.
+                        Read full summary →
+---------------------------------
 EVENTS  2
 
-[Crisis card - filled background, left border accent]
+[Crisis card - filled background]
 Vellin population collapsing
 The numbers are bad. Keth pressure has
 been building for three cycles.
-[Highgrowth]        I should respond →
+Cycle 91              I need to decide →
 
-[Observation card - flat, no fill]
-Vellin crossed into Understory
-for the first time.
-[Understory fringe]                  ›
+[Decision card - accent tint]
+Keth range expanding into Understory
+They have pushed further than last season.
+Cycle 90             I should weigh in →
 ---------------------------------
 RESEARCH
 
@@ -1626,9 +1633,9 @@ results in a few hours        [=====  ]
 ---------------------------------
 SPECIES              | ECOSYSTEM
                      |
-Vellin    340  ↓     | ● Highgrowth  stable
-Keth      203  ↑     | ● Understory  rising
-                     | ● Scorch Flats  stress
+Vellin  847 (-115)   | Highgrowth  stable
+Keth    203 (+90)    | Understory  rising
+                     | Scorch Flats  stress
 View all →           |
 ---------------------------------
 ```
@@ -1637,7 +1644,9 @@ View all →           |
 
 **Resources** - field data and specimens always visible in the header, always current.
 
-**Events** - the priority section. Shown above everything else when present. Crisis and observation events are structurally distinct - different card shapes, not just different colors. See Event Cards below.
+**Session summary** - shown below the header when returning after time away. A brief narrative lead (1-3 sentences) covering the most significant things that happened since last session, written in researcher voice. Tapping "Read full summary →" opens a chronological view of everything that happened — all event types including observations — scoped to the elapsed cycles. Dismissable once read; disappears on quiet sessions with no elapsed events. This is the primary home for observation events — they do not appear as cards on the home screen.
+
+**Events** - shown below the session summary. Crisis and decision events only — observation events live in the session summary. Each card is unresolved and actionable. The section disappears entirely when there are no pending crisis or decision events.
 
 **Research** - shown below events as a strip, not a card. Lower visual weight than event cards - it is a persistent status indicator, not a notification. Shows project name, an approximate time label, and a progress bar. The bar and the time label must not contradict each other. Always tappable - opens the project screen whether a project is active or not.
 
@@ -1649,11 +1658,13 @@ No active project.
 3 studies ready to begin.            →
 ```
 
-**Species and Ecosystem** - shown side by side in two columns to conserve vertical space. Species on the left, ecosystem on the right. Only species involved in active events appear in the species column. All three biomes always appear in the ecosystem column regardless of event state - a biome under stress should always be visible even if no event has fired for it yet.
+**Species and Ecosystem** - shown side by side in two columns to conserve vertical space. Species on the left, ecosystem on the right. Only species involved in active crisis or decision events appear in the species column. All three biomes always appear in the ecosystem column regardless of event state - a biome under stress should always be visible even if no event has fired for it yet.
+
+Species rows show current population and the change from 5 cycles ago in parentheses — `847 (−115)`. The diff is colored green for positive, red for negative, muted for zero. Full population history and trend analysis belong on the species detail page.
 
 **View all species** - a single link at the bottom of the species column opens the full species list.
 
-**Quiet sessions** - if there are no pending events the events section disappears entirely. Nothing fills the space. The emptiness is intentional - a quiet home screen is a reward for attentive play, not a loading state. The research strip and the species/ecosystem columns remain.
+**Quiet sessions** - if there are no pending crisis or decision events the events section disappears entirely. Nothing fills the space. The emptiness is intentional - a quiet home screen is a reward for attentive play, not a loading state. The session summary, research strip, and species/ecosystem columns remain.
 
 ### Event Cards
 
@@ -1669,9 +1680,9 @@ A fast-collapsing population may escalate through all three tiers in 4-5 cycles.
 
 When a decision expires - resolved during an offline batch while the player was away - the CTA is replaced by a past-tense outcome line in the same footer position: *resolved while you were away.* The card shape stays the same; the active voice drains out of it. This is distinct from a decision the player actively ignored, which becomes a log entry in a different register.
 
-**Observation cards** are flat and borderless with no footer row. A biome chip and a simple arrow are the only affordances. They report; they do not ask.
+**Observation events** do not appear as cards on the home screen. They surface in the session summary and the full chronological session view. A crisis or decision event is always more meaningful when the observations that preceded it are readable nearby — the session summary provides that context.
 
-The structural difference in card shape - footer row present or absent - communicates the distinction before the player reads a word.
+The home screen event list contains only things that require the researcher's active response.
 
 ### Secondary Screens
 

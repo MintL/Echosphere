@@ -127,128 +127,30 @@
   font-size: 11px;
 }
 
-/* ── Events ── */
-.events {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Crisis card */
-.eventCrisis {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* ── Session strip ── */
+.sessionStrip {
+  display: block;
   width: 100%;
-  background: color-mix(in oklch, var(--crisis) 7%, var(--bg));
+  padding: 11px 24px;
+  background: color-mix(in oklch, var(--accent) 12%, var(--bg));
   border: none;
-  border-radius: 3px;
-  padding: 12px 14px;
-  cursor: pointer;
+  border-bottom: 1px solid var(--rule);
   text-align: left;
-  transition: opacity 0.15s ease;
-}
-
-.eventCrisis:hover {
-  opacity: 0.75;
-}
-
-/* Decision card */
-.eventDecision {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  background: color-mix(in oklch, var(--accent) 7%, var(--bg));
-  border: none;
-  border-radius: 3px;
-  padding: 12px 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: opacity 0.15s ease;
-}
-
-.eventDecision:hover {
-  opacity: 0.75;
-}
-
-/* Observation card */
-.eventObservation {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  background: var(--bg-alt);
-  border: none;
-  border-radius: 3px;
-  padding: 12px 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: opacity 0.15s ease;
-}
-
-.eventObservation:hover {
-  opacity: 0.65;
-}
-
-.eventTitle {
-  font-family: var(--font-prose);
-  font-size: 16px;
-  color: var(--ink);
-  line-height: 1.4;
-}
-
-.eventCrisis .eventTitle {
-  color: var(--crisis);
-}
-
-.eventBody {
-  font-family: var(--font-prose);
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ink-2);
-  line-height: 1.45;
-}
-
-/* Footer row: biome chip + CTA or arrow */
-.eventFooterRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 2px;
-}
-
-
-/* Crisis CTA */
-.eventCta {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  white-space: nowrap;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
 
-.eventCtaTier1 { color: var(--ink-2); }
-.eventCtaTier2 { color: var(--accent); }
-.eventCtaTier3 { color: var(--crisis); }
-.eventCtaDecision { color: var(--accent); }
-
-/* Expired state */
-.eventExpired {
-  font-family: var(--font-prose);
-  font-style: italic;
-  font-size: 12px;
-  color: var(--ink-3);
+.sessionStrip:hover {
+  opacity: 0.8;
 }
 
-/* Cycle label */
-.eventCycle {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+.sessionStripCount {
+  color: var(--crisis);
 }
 
 /* ── Research strip ── */
@@ -343,11 +245,6 @@
   border-bottom: none;
 }
 
-.biomeRowDot {
-  font-size: 7px;
-  flex-shrink: 0;
-  line-height: 1;
-}
 
 .biomeRowName {
   font-size: 12px;
@@ -409,16 +306,27 @@
   flex: 1;
 }
 
+
+
+.speciesTrend {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
 .speciesPop {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-2);
-  text-align: right;
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
 }
 
-.trendUp   { font-size: 11px; color: var(--positive); }
-.trendDown { font-size: 11px; color: var(--crisis);   }
-.trendFlat { font-size: 11px; color: var(--ink-3);    }
+.speciesDiff {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.diffPos     { color: var(--positive); }
+.diffNeg     { color: var(--crisis);   }
+.diffNeutral { color: var(--ink-3);    }
+
