@@ -1,5 +1,5 @@
-import { SPECIES_DEFS } from '../data/species.js'
 import { mulberry32, noise, advanceSeed } from './rng.js'
+import { generateWorld } from './worldgen.js'
 import { checkThresholds } from './triggers.js'
 import { processMigration } from './migration.js'
 
@@ -272,9 +272,12 @@ export function runCycles(state, cycleCount) {
 // ─── Initial state factory ────────────────────────────────────────────────────
 
 export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
+  const world = generateWorld(seed)
+
   return {
-    cycle:      0,
-    randomSeed: seed >>> 0,
+    cycle:            0,
+    randomSeed:       world.seed,
+    worldDesignation: world.designation,
     researcher: {
       name:      researcherName,
       log:       [],
@@ -282,24 +285,24 @@ export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
       resources: { fieldData: 0, specimens: 0 },
     },
     biomes: {
-      highgrowth:  { id: 'highgrowth',  name: 'Highgrowth',   health: 1.0, stress: 0 },
-      understory:  { id: 'understory',  name: 'Understory',   health: 1.0, stress: 0 },
-      scorchFlats: { id: 'scorchFlats', name: 'Scorch Flats', health: 1.0, stress: 0 },
+      highgrowth:  { id: 'highgrowth',  name: 'Highgrowth',   health: 1.0, stress: world.biomeStress.highgrowth },
+      understory:  { id: 'understory',  name: 'Understory',   health: 1.0, stress: world.biomeStress.understory },
+      scorchFlats: { id: 'scorchFlats', name: 'Scorch Flats', health: 1.0, stress: world.biomeStress.scorchFlats },
     },
-    species: SPECIES_DEFS.map(def => ({
+    species: world.species.map(def => ({
       ...def,
-      population:   def.startingPopulation,
-      currentBiome: def.homeBiome,
+      population:        def.startingPopulation,
+      currentBiome:      def.homeBiome,
       migrationPressure: 0,
-      subpopulations: [],
+      subpopulations:    [],
       history: {
-        baseline:            def.startingPopulation,
-        previousPopulation:  def.startingPopulation,
-        peakPopulation:      def.startingPopulation,
-        lowestPopulation:    def.startingPopulation,
-        stableCycles:        0,
-        cyclesObserved:      0,
-        extinctCycle:        null,
+        baseline:           def.startingPopulation,
+        previousPopulation: def.startingPopulation,
+        peakPopulation:     def.startingPopulation,
+        lowestPopulation:   def.startingPopulation,
+        stableCycles:       0,
+        cyclesObserved:     0,
+        extinctCycle:       null,
       },
       milestones: {
         observed:          false,
