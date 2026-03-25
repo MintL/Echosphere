@@ -77,7 +77,7 @@ export const SPECIES_DEFS = [
     borderBiome: null,
     borderPosition: 0,
     startingPopulation: 200,
-    carryingCapacity: 600,
+    carryingCapacity: 350,
     naturalGrowthRate: 0.18,
     naturalDeathRate: 0.003,
     movementTraits: [],
@@ -110,7 +110,7 @@ export const SPECIES_DEFS = [
     borderBiome: null,
     borderPosition: 0,
     startingPopulation: 150,
-    naturalDeathRate: 0.015,
+    naturalDeathRate: 0.038,
     movementTraits: ['walker'],
     biomeComfort: { highgrowth: 0.0, understory: 1.0, scorchFlats: 0.0 },
     eats: [
@@ -124,8 +124,8 @@ export const SPECIES_DEFS = [
     homeBiome: 'scorchFlats',
     borderBiome: 'highgrowth',
     borderPosition: 0.3,   // 70 % Scorch, 30 % Highgrowth border access
-    startingPopulation: 60,
-    naturalDeathRate: 0.025,
+    startingPopulation: 75,
+    naturalDeathRate: 0.055,
     movementTraits: ['walker', 'armored'],
     biomeComfort: { highgrowth: 0.6, understory: 0.0, scorchFlats: 1.0 },
     eats: [
@@ -141,8 +141,8 @@ export const SPECIES_DEFS = [
     homeBiome: 'scorchFlats',
     borderBiome: null,
     borderPosition: 0,
-    startingPopulation: 80,
-    naturalDeathRate: 0.021,
+    startingPopulation: 170,
+    naturalDeathRate: 0.068,
     movementTraits: ['walker', 'armored'],
     biomeComfort: { highgrowth: 0.0, understory: 0.0, scorchFlats: 1.0 },
     eats: [

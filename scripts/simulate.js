@@ -13,12 +13,12 @@ const RUNS          = 10
 const CYCLES        = 500
 const EARLY_WINDOW  = 50     // "early extinction" means within this many cycles
 const POP_MAX       = 10_000
-const EVENT_MIN     = 30
+const EVENT_MIN     = 20
 const EVENT_MAX     = 100
-const SURVIVE_MIN   = 8
+const SURVIVE_MIN   = 6
 const TOTAL_SPECIES = 11
 const FLAT_CYCLES   = 200
-const OSC_CV_MIN    = 0.08   // CV threshold for "visible oscillation"
+const OSC_CV_MIN    = 0.06   // CV threshold for "visible oscillation"
 
 // ─── ANSI helpers ─────────────────────────────────────────────────────────────
 

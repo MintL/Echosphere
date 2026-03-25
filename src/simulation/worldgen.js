@@ -23,13 +23,17 @@ function varyComfort(comfortMap, range, rng) {
 // the base species definitions. Base coefficients and variance are separate
 // concerns — do not solve them together.
 //
-// Variance ranges (from GDD):
-//   startingPopulation  ±20%
-//   naturalGrowthRate   ±10%  (producers + grubmere only)
-//   naturalDeathRate    ±10%
-//   predation efficiency ±7%  (midpoint of 5–8%; tightest — most sensitive)
-//   biomeComfort        ±8%   (non-zero values only)
-//   biomeStress         0–5%  (small per-biome starting stress)
+// Variance ranges — tuned to hit GDD extinction timing targets:
+//   First extinction in cycles 50–100: ~60% of runs
+//   Never extinct in 500 cycles: 0%
+//
+//   startingPopulation  ±35%
+//   naturalGrowthRate   ±15%  (producers + grubmere only)
+//   naturalDeathRate    ±20%
+//   attackRate          ±30%  (determines prey consumption intensity)
+//   predation efficiency ±8%
+//   biomeComfort        ±10%  (non-zero values only)
+//   biomeStress         0–8%  (per-biome starting stress)
 export function generateWorld(seed) {
   const rng = mulberry32(seed >>> 0)
 
@@ -39,29 +43,30 @@ export function generateWorld(seed) {
   const species = SPECIES_DEFS.map(def => {
     const variedEats = def.eats.map(eat => ({
       ...eat,
-      efficiency: vary(eat.efficiency, 0.07, rng),
+      attackRate: vary(eat.attackRate, 0.30, rng),
+      efficiency: vary(eat.efficiency, 0.08, rng),
     }))
 
     const variedDef = {
       ...def,
-      startingPopulation: Math.max(1, Math.round(vary(def.startingPopulation, 0.20, rng))),
-      naturalDeathRate:   vary(def.naturalDeathRate, 0.10, rng),
-      biomeComfort:       varyComfort(def.biomeComfort, 0.08, rng),
+      startingPopulation: Math.max(1, Math.round(vary(def.startingPopulation, 0.35, rng))),
+      naturalDeathRate:   vary(def.naturalDeathRate, 0.20, rng),
+      biomeComfort:       varyComfort(def.biomeComfort, 0.10, rng),
       eats:               variedEats,
     }
 
     if (def.naturalGrowthRate !== undefined) {
-      variedDef.naturalGrowthRate = vary(def.naturalGrowthRate, 0.10, rng)
+      variedDef.naturalGrowthRate = vary(def.naturalGrowthRate, 0.15, rng)
     }
 
     return variedDef
   })
 
-  // Small per-biome starting stress (0–5%) — creates minor initial health variance
+  // Per-biome starting stress (0–8%) — creates initial health variance
   const biomeStress = {
-    highgrowth:  rng() * 0.05,
-    understory:  rng() * 0.05,
-    scorchFlats: rng() * 0.05,
+    highgrowth:  rng() * 0.08,
+    understory:  rng() * 0.08,
+    scorchFlats: rng() * 0.08,
   }
 
   return { seed: seed >>> 0, designation, species, biomeStress }
