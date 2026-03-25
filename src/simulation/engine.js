@@ -1,8 +1,9 @@
 import { mulberry32, noise, advanceSeed } from './rng.js'
 import { generateWorld } from './worldgen.js'
-import { checkThresholds } from './triggers.js'
+import { checkThresholds, checkDiscovery, checkResearch } from './triggers.js'
 import { processMigration } from './migration.js'
 import { getCatalogSpecies } from '../data/catalog.js'
+import { advanceResearch, applyProjectCompletion, makeStudySuggestion, hasSuggestion } from './research.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -245,11 +246,58 @@ export function simulateCycle(state) {
   const newFoodWeb      = buildFoodWeb(newSpecies)
   const migratedSpecies = processMigration(newSpecies, newSpMap, newBiomeHealth, newFoodWeb, rng)
 
+  // Phase 4: discovery — accumulate sighting scores
+  const nextCycle = state.cycle + 1
+  const discoveredSpecies = migratedSpecies.map(sp => {
+    if (sp.population <= 0) return sp
+
+    const disc    = sp.discovery || { sightingScore: 0, sightingCount: 0, lastSightingCycle: null }
+    const baseline = sp.history.baseline
+
+    // Too sparse to find
+    if (sp.population < baseline * 0.15) return { ...sp, discovery: disc }
+
+    const ROLE_RATE = { producer: 0.35, decomposer: 0.28, consumer: 0.18, predator: 0.12, specialist: 0.14, apex: 0.06 }
+    const delta    = (sp.population / baseline) * (ROLE_RATE[sp.role] ?? 0.15)
+    const newScore = Math.min(999, disc.sightingScore + delta)
+
+    // Check if we just crossed a new integer threshold
+    const prevFloor = Math.floor(disc.sightingScore)
+    const nextFloor = Math.floor(newScore)
+    let newCount    = disc.sightingCount
+
+    if (nextFloor > prevFloor && newCount < 5) {
+      newCount = Math.min(5, newCount + (nextFloor - prevFloor))
+    }
+
+    const justSighted = disc.sightingCount === 0 && newCount >= 1
+
+    return {
+      ...sp,
+      milestones: justSighted ? { ...sp.milestones, observed: true } : sp.milestones,
+      discovery: {
+        sightingScore:     newScore,
+        sightingCount:     newCount,
+        lastSightingCycle: newCount > disc.sightingCount ? nextCycle : disc.lastSightingCycle,
+      },
+    }
+  })
+
+  // Phase 5: research — advance active project
+  const research = state.research || { active: null, queue: [], history: [], suggestions: [] }
+  const { research: nextResearch, completedProject } = advanceResearch(research, nextCycle)
+
+  let finalSpecies = discoveredSpecies
+  if (completedProject) {
+    finalSpecies = applyProjectCompletion(discoveredSpecies, completedProject)
+  }
+
   return {
     ...state,
-    cycle:      state.cycle + 1,
+    cycle:      nextCycle,
     randomSeed: advanceSeed(state.randomSeed),
-    species:    migratedSpecies,
+    species:    finalSpecies,
+    research:   nextResearch,
     biomes: {
       highgrowth:  { ...state.biomes.highgrowth,  health: newBiomeHealth.highgrowth,  stress: newStress.highgrowth },
       understory:  { ...state.biomes.understory,  health: newBiomeHealth.understory,  stress: newStress.understory },
@@ -282,7 +330,13 @@ export function runCycles(state, cycleCount) {
   for (let i = 0; i < cycleCount; i++) {
     const prev = state
     state = simulateCycle(state)
-    const cycleEvents = stampEvents(checkThresholds(prev, state))
+
+    const rawEvents  = [
+      ...checkThresholds(prev, state),
+      ...checkDiscovery(prev, state),
+      ...checkResearch(prev, state),
+    ]
+    const cycleEvents = stampEvents(rawEvents)
     newEvents.push(...cycleEvents)
 
     // Accumulate open niches from nicheOpened events into state
@@ -300,6 +354,25 @@ export function runCycles(state, cycleCount) {
               candidates:       ev.data.candidates,
             },
           ],
+        }
+      }
+
+      // studySuggested: add suggestion to research state if not already present
+      if (ev.type === 'studySuggested') {
+        const research = state.research || { active: null, queue: [], history: [], suggestions: [] }
+        const sp = state.species.find(s => s.id === ev.speciesId)
+        if (sp && !hasSuggestion(research, sp.id, 'initial')) {
+          const suggestion = makeStudySuggestion(sp, 'initial', ev.cycle)
+          // Cap suggestions at 5 — drop oldest if over limit
+          const existing = research.suggestions
+          const trimmed  = existing.length >= 5 ? existing.slice(1) : existing
+          state = {
+            ...state,
+            research: {
+              ...research,
+              suggestions: [...trimmed, suggestion],
+            },
+          }
         }
       }
     }
@@ -354,10 +427,21 @@ export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
         behaviorMapped:    false,
         populationModeled: false,
       },
+      discovery: {
+        sightingScore:     def.sightingOffset ?? 0,
+        sightingCount:     0,
+        lastSightingCycle: null,
+      },
     })),
     events:     [],
     openNiches: [],
     catalog:    [],
+    research: {
+      active:      null,
+      queue:       [],
+      history:     [],
+      suggestions: [],
+    },
   }
 }
 
@@ -421,6 +505,11 @@ export function introduceSpecies(state, catalogSpeciesId) {
       roleIdentified:    false,
       behaviorMapped:    false,
       populationModeled: false,
+    },
+    discovery: {
+      sightingScore:     0,
+      sightingCount:     0,
+      lastSightingCycle: null,
     },
   }
 

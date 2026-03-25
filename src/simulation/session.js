@@ -3,7 +3,7 @@ import { loadState, saveState } from '../storage/db.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MINUTES_PER_CYCLE  = 1 / 60   // 1 second
+const MINUTES_PER_CYCLE  = 5 / 60   // 5 seconds
 const MAX_CATCHUP_CYCLES = 200
 
 export const CYCLE_DURATION_MS = MINUTES_PER_CYCLE * 60 * 1000
@@ -46,7 +46,8 @@ export async function loadSession(researcherName) {
     e => e.cycle > state.researcher.lastSummaryViewedCycle
   )
 
-  return { state, hasNewEvents, isNewGame: false }
+  const awayMs = now - lastSaved
+  return { state, hasNewEvents, isNewGame: false, awayCycles: cyclesToRun, awayMs }
 }
 
 // ─── Save checkpoint ──────────────────────────────────────────────────────────

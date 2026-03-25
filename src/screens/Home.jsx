@@ -4,6 +4,7 @@ import { loadSession, saveSession, CYCLE_DURATION_MS } from '../simulation/sessi
 import { clearState } from '../storage/db.js'
 import { simulateCycle, runCycles } from '../simulation/engine.js'
 import { checkThresholds } from '../simulation/triggers.js'
+import { spName } from '../utils/species.js'
 import styles from './Home.module.css'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -50,6 +51,46 @@ function StatusLabel({ status }) {
 
 const TREND_ORDER = { critical: 0, declining: 1, stable: 2, thriving: 3 }
 
+function ResearchStrip({ research, cycle, onTap }) {
+  const r = research || { active: null, queue: [], history: [], suggestions: [] }
+
+  let name, time, pct
+
+  if (r.active) {
+    const elapsed   = cycle - r.active.startCycle
+    const remaining = r.active.completionCycle - cycle
+    pct  = Math.min(1, elapsed / r.active.durationCycles)
+    name = `${r.active.name} — ${r.active.targetName}`
+    time = remaining <= 0
+      ? 'Completing this cycle'
+      : remaining === 1
+        ? '1 cycle remaining'
+        : `${remaining} cycles remaining`
+  } else if (r.suggestions.length > 0) {
+    const n = r.suggestions.length
+    name = 'No active project.'
+    time = `${n} suggested ${n === 1 ? 'project' : 'projects'}`
+  } else {
+    name = 'No active project.'
+    time = 'No studies available yet.'
+  }
+
+  return (
+    <button className={styles.researchStrip} onClick={onTap}>
+      <div className={styles.researchMeta}>
+        <span className={styles.researchName}>{name}</span>
+        {time && <span className={styles.researchTime}>{time}</span>}
+        <span className={styles.navArrow}>→</span>
+      </div>
+      {r.active && pct !== undefined && (
+        <div className={styles.researchBar}>
+          <div className={styles.researchBarFill} style={{ width: `${pct * 100}%` }} />
+        </div>
+      )}
+    </button>
+  )
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -57,15 +98,19 @@ export default function Home() {
   const location   = useLocation()
   const researcher = localStorage.getItem('echosphere_researcher') || 'Researcher'
 
-  const [gameState, setGameState] = useState(null)
-  const [loading,   setLoading]   = useState(true)
+  const [gameState,   setGameState]   = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [awayCycles,  setAwayCycles]  = useState(0)
+  const [awayMs,      setAwayMs]      = useState(0)
 
   useEffect(() => {
-    loadSession(researcher).then(({ state, hasNewEvents }) => {
+    loadSession(researcher).then(({ state, hasNewEvents, awayCycles: ac, awayMs: am }) => {
       setGameState(state)
       setLoading(false)
+      setAwayCycles(ac ?? 0)
+      setAwayMs(am ?? 0)
 
-      if (!location.state?.fromSummary && hasNewEvents) {
+      if (!location.state && hasNewEvents) {
         navigate('/summary', { replace: true })
       }
     })
@@ -94,21 +139,24 @@ export default function Home() {
     )
   }
 
+  const awayHours = Math.round(awayMs / (1000 * 60 * 60))
+
   const species = gameState.species
-    .filter(sp => sp.population > 0)
+    .filter(sp => sp.population > 0 && (sp.discovery?.sightingCount ?? 0) >= 1)
     .map(sp => ({
-      id:      sp.id,
-      name:    sp.name,
-      pop:     Math.round(sp.population),
-      popDiff: Math.round(sp.population - sp.history.previousPopulation),
-      trend:   computeTrend(sp),
+      id:        sp.id,
+      name:      spName(sp),
+      homeBiome: sp.homeBiome,
+      pop:       Math.round(sp.population),
+      popDiff:   Math.round(sp.population - sp.history.previousPopulation),
+      trend:     computeTrend(sp),
     }))
     .sort((a, b) => (TREND_ORDER[a.trend] ?? 2) - (TREND_ORDER[b.trend] ?? 2))
 
   const biomes = Object.values(gameState.biomes).map(b => ({
-    id:     b.id,
-    name:   b.name,
-    status: biomeStatus(b.health),
+    id:           b.id,
+    name:         b.name,
+    status:       b.surveyMilestones?.located ? biomeStatus(b.health) : null,
   }))
 
   const unreadEvents   = gameState.events.filter(
@@ -129,6 +177,14 @@ export default function Home() {
         </div>
         <div className={styles.headerMeta}>
           Cycle {gameState.cycle}
+          {awayCycles > 0 && (
+            <>
+              <span className={styles.dot}>·</span>
+              Away {awayHours > 0 ? `${awayHours}h` : 'briefly'}
+              <span className={styles.dot}>·</span>
+              {awayCycles} {awayCycles === 1 ? 'cycle' : 'cycles'} passed
+            </>
+          )}
         </div>
         <div className={styles.resources}>
           <span className={styles.resourceItem}>
@@ -147,16 +203,16 @@ export default function Home() {
         {hasUnread
           ? <>
               <span className={styles.sessionStripCount}>{unreadEvents.length}</span>
-              {unreadEvents.length === 1 ? ' new event' : ' new events'}
+              {unreadEvents.length === 1 ? 'new event' : 'new events'}
               {actionable.length > 0 && <>
-                {' · '}
+                <span className={styles.sessionStripSep}>·</span>
                 <span className={styles.sessionStripCount}>{actionable.length}</span>
-                {actionable.length === 1 ? ' needs attention' : ' need attention'}
+                {actionable.length === 1 ? 'needs attention' : 'need attention'}
               </>}
-              {' →'}
             </>
-          : 'No new events →'
+          : 'No new events'
         }
+        <span className={styles.navArrow}>→</span>
       </button>
 
       {/* ── Research ── */}
@@ -164,12 +220,11 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <span className={styles.sectionLabel}>Research</span>
         </div>
-        <button className={styles.researchStrip}>
-          <div className={styles.researchMeta}>
-            <span className={styles.researchName}>No active project.</span>
-            <span className={styles.researchTime}>No studies available yet.</span>
-          </div>
-        </button>
+        <ResearchStrip
+          research={gameState.research}
+          cycle={gameState.cycle}
+          onTap={() => navigate('/research')}
+        />
       </section>
 
       {/* ── Species + Ecosystem ── */}
@@ -181,14 +236,18 @@ export default function Home() {
               <span className={styles.sectionLabel}>Species</span>
             </div>
             <div className={styles.speciesList}>
-              {species.slice(0, 5).map(sp => (
+              {species.length === 0 ? (
+                <div className={styles.speciesEmpty}>No sightings yet.</div>
+              ) : species.map(sp => (
                 <div key={sp.id} className={styles.speciesRow}>
-                  <span className={`${styles.speciesName} entity`}>{sp.name}</span>
-                  <SpeciesTrend pop={sp.pop} popDiff={sp.popDiff} />
+                  <span
+                    className={`${styles.speciesName} ${sp.name === 'Unknown' ? styles.speciesUnknown : ''} entity`}
+                    onClick={() => navigate(`/species/${sp.id}`)}
+                  >{sp.name}</span>
+                  {sp.name !== 'Unknown' && <SpeciesTrend pop={sp.pop} popDiff={sp.popDiff} />}
                 </div>
               ))}
             </div>
-            <button className={styles.viewAll}>View all →</button>
           </div>
 
           <div className={styles.splitRight}>
@@ -198,8 +257,11 @@ export default function Home() {
             <div className={styles.biomeList}>
               {biomes.map(b => (
                 <div key={b.id} className={styles.biomeRow}>
-                  <span className={`${styles.biomeRowName} entity`}>{b.name}</span>
-                  <StatusLabel status={b.status} />
+                  <span className={`${styles.biomeRowName} entity`} onClick={() => navigate(`/biome/${b.id}`)}>{b.name}</span>
+                  {b.status
+                    ? <StatusLabel status={b.status} />
+                    : <span className={styles.biomeUncharacterized}>uncharacterized</span>
+                  }
                 </div>
               ))}
             </div>

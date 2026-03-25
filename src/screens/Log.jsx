@@ -37,7 +37,7 @@ export default function Log() {
 
   function handleBack() {
     setClosing(true)
-    setTimeout(() => navigate('/home'), 300)
+    setTimeout(() => navigate('/home', { state: { fromScreen: true } }), 300)
   }
 
   return (

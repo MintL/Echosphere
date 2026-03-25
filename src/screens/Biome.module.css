@@ -1,0 +1,375 @@
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.container {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: slideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.closing {
+  animation: slideDown 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.inner {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 24px 14px;
+  z-index: 10;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--bg), transparent);
+  pointer-events: none;
+}
+
+.backBtn {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--ink-2);
+}
+
+.headerTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.headerTitle {
+  font-family: var(--font-prose);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.statusStable   { color: var(--ink-2); }
+.statusRising   { color: var(--positive); }
+.statusStress   { color: var(--accent); }
+.statusCritical { color: var(--crisis); }
+
+.headerSub {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+
+/* ── Section shell ── */
+.section {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sectionLast {
+  border-bottom: none;
+  padding-bottom: 48px;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+
+/* ── Journal ── */
+.journal {
+  font-family: var(--font-prose);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.milestones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.milestoneOn {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.milestoneOff {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.milestoneSep {
+  color: var(--rule);
+  margin-right: 6px;
+  font-weight: 400;
+}
+
+/* ── Conditions ── */
+.conditionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--rule);
+}
+
+.condCell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px;
+}
+
+.condCell + .condCell {
+  border-left: 1px solid var(--rule);
+}
+
+.condCellFull {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--rule);
+  border-left: none;
+}
+
+.condKey {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.condVal {
+  font-family: var(--font-prose);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.condValItalic {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.healthBar {
+  height: 2px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.healthFill {
+  height: 100%;
+  background: var(--positive);
+}
+
+/* ── Species list ── */
+.speciesList {
+  display: flex;
+  flex-direction: column;
+}
+
+.speciesRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 50%, transparent);
+  font-size: 14px;
+}
+
+.speciesRow:last-child {
+  border-bottom: none;
+}
+
+.speciesPop {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.arrow      { font-size: 11px; }
+.arrowPos   { color: var(--positive); }
+.arrowNeg   { color: var(--crisis); }
+.arrowNeutral { color: var(--ink-3); }
+
+/* ── Hazards ── */
+.hazardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hazardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 50%, transparent);
+}
+
+.hazardRow:last-child {
+  border-bottom: none;
+}
+
+.hazardName {
+  font-family: var(--font-prose);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.hazardUnknown {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+.severityBadge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.severityMinor    { color: var(--ink-3); }
+.severityModerate { color: var(--accent); }
+.severityCritical { color: var(--crisis); }
+
+/* ── Log entries ── */
+.entries {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--rule) 60%, transparent);
+}
+
+.entry:last-child {
+  border-bottom: none;
+}
+
+.entryMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.entryCycle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+.entryType {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 1px 6px;
+  border: 1px solid var(--rule);
+  color: var(--ink-3);
+}
+
+.crisis .entryType {
+  color: var(--crisis);
+  border-color: color-mix(in oklch, var(--crisis) 40%, transparent);
+}
+
+.decision .entryType {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 40%, transparent);
+}
+
+.entryText {
+  font-family: var(--font-prose);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.loading {
+  padding: 40px 24px;
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.empty {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+.condValMuted {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-3);
+}

@@ -140,7 +140,8 @@
 
 /* ── Session strip ── */
 .sessionStrip {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   padding: 11px 24px;
   background: color-mix(in oklch, var(--accent) 12%, var(--bg));
@@ -162,6 +163,12 @@
 
 .sessionStripCount {
   color: var(--crisis);
+  margin-right: 4px;
+}
+
+.sessionStripSep {
+  margin: 0 6px;
+  color: var(--ink-3);
 }
 
 /* ── Research strip ── */
@@ -205,6 +212,12 @@
 .researchTime {
   font-family: var(--font-prose);
   font-style: italic;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.navArrow {
+  margin-left: auto;
   font-size: 13px;
   color: var(--ink-3);
 }
@@ -275,6 +288,13 @@
 .statusStress  { color: var(--accent); }
 .statusCritical { color: var(--crisis); }
 
+.biomeUncharacterized {
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-3);
+}
+
 /* ── View all ── */
 .viewAll {
   margin-top: 10px;
@@ -315,6 +335,19 @@
   font-weight: 500;
   color: var(--ink);
   flex: 1;
+}
+
+.speciesUnknown {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.speciesEmpty {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-3);
+  padding: 6px 0;
 }
 
 

@@ -5,7 +5,19 @@ import { saveSession, canContinue, onContinue } from '../simulation/session.js'
 import { eventToEntry } from '../data/text/events.js'
 import styles from './SessionSummary.module.css'
 
-function Entry({ cycle, type, text, resolved, onRespond }) {
+function EntryText({ segments }) {
+  return (
+    <p className={styles.entryText}>
+      {segments.map((seg, i) =>
+        seg.type === 'entity'
+          ? <span key={i} className="entity">{seg.name}</span>
+          : seg.value
+      )}
+    </p>
+  )
+}
+
+function Entry({ cycle, type, segments, resolved, onRespond }) {
   const cta = type === 'crisis'   ? 'I should respond →'
             : type === 'decision' ? 'I should weigh in →'
             : null
@@ -18,7 +30,7 @@ function Entry({ cycle, type, text, resolved, onRespond }) {
           <span className={styles.entryType}>{type}</span>
         )}
       </div>
-      <p className={styles.entryText}>{text}</p>
+      <EntryText segments={segments} />
       {cta && !resolved && (
         <button
           className={`${styles.entryCta} ${styles[`entryCta_${type}`]}`}
@@ -72,7 +84,7 @@ export default function SessionSummary() {
 
   // Build entries keeping a reference to the global event index so we can resolve them
   const entries = newEvents.flatMap((ev, i) => {
-    const entry = eventToEntry(ev)
+    const entry = eventToEntry(ev, gameState)
     if (!entry) return []
     const globalIdx = gameState.events.indexOf(ev)
     return [{ ...entry, resolved: ev.resolved, globalIdx }]
@@ -111,7 +123,7 @@ export default function SessionSummary() {
                 key={i}
                 cycle={entry.cycle}
                 type={entry.type}
-                text={entry.text}
+                segments={entry.segments}
                 resolved={entry.resolved}
                 onRespond={() => handleRespond(entry.globalIdx)}
               />

@@ -51,6 +51,7 @@ export function generateWorld(seed) {
       naturalDeathRate:   vary(def.naturalDeathRate, 0.40, rng),
       biomeComfort:       varyComfort(def.biomeComfort, 0.15, rng),
       eats:               variedEats,
+      sightingOffset:     rng() * 0.85,
     }
 
     if (def.naturalGrowthRate !== undefined) {

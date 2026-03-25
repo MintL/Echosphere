@@ -24,11 +24,51 @@ const EVENT_TYPES = {
   SUBPOPULATION_FAILED:     'subpopulationFailed',
   SPECIATION_CANDIDATE:     'speciationCandidate',
   NICHE_OPENED:             'nicheOpened',
+  FIRST_SIGHTING:     'firstSighting',
+  SUBSEQUENT_SIGHTING: 'subsequentSighting',
+  STUDY_SUGGESTED:    'studySuggested',
+  STUDY_COMPLETED:    'studyCompleted',
+  RESEARCH_STARTED:   'researchStarted',
 }
 
 export { EVENT_TYPES }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// ─── Knowledge tier gating ────────────────────────────────────────────────────
+//
+// Tiers: 0=undiscovered, 1=sighted, 2=known, 3=understood, 4=modeled
+// Source: GDD "Event Gating by Knowledge Milestone"
+
+function getKnowledgeTier(sp) {
+  const m = sp.milestones || {}
+  if (!m.observed)          return 0
+  if (!m.roleIdentified)    return 1
+  if (!m.behaviorMapped)    return 2
+  if (!m.populationModeled) return 3
+  return 4
+}
+
+// Minimum tier required for each event type to fire
+const EVENT_MIN_TIER = {
+  extinction:              1,  // sighted
+  nicheOpened:             2,  // known
+  extinctionWarning:       3,  // understood
+  populationCrisis:        3,  // understood
+  cascadeRisk:             3,  // understood
+  populationSurge:         2,  // known
+  populationLow:           2,  // known
+  populationStable:        2,  // known
+  firstBiomeEntry:         2,  // known
+  subpopulationStabilized: 2,  // known
+  subpopulationFailed:     2,  // known
+  speciationCandidate:     3,  // understood
+}
+
+function canFire(eventType, sp) {
+  const required = EVENT_MIN_TIER[eventType] ?? 1
+  return getKnowledgeTier(sp) >= required
+}
 
 function indexById(species) {
   const m = {}
@@ -65,26 +105,29 @@ export function checkThresholds(prevState, nextState) {
   for (const sp of nextState.species) {
     const prev = prevMap[sp.id]
     if (!prev) continue
+    if (getKnowledgeTier(sp) === 0) continue  // undiscovered — no events
 
     const wasAlive = prev.population > 0
     const nowDead  = sp.population === 0
 
-    // Extinction
+    // Extinction (requires: sighted)
     if (wasAlive && nowDead) {
-      events.push({
-        type:      EVENT_TYPES.EXTINCTION,
-        cycle,
-        speciesId: sp.id,
-        data: {
-          name:             sp.name,
-          lastPopulation:   prev.population,
-          peakPopulation:   sp.history.peakPopulation,
-        },
-      })
+      if (canFire('extinction', sp)) {
+        events.push({
+          type:      EVENT_TYPES.EXTINCTION,
+          cycle,
+          speciesId: sp.id,
+          data: {
+            name:           sp.name,
+            lastPopulation: prev.population,
+            peakPopulation: sp.history.peakPopulation,
+          },
+        })
+      }
 
-      // Niche opened: surface catalog candidates for the vacated role
+      // Niche opened (requires: known)
       const catalogRole = sp.catalogRole
-      if (catalogRole) {
+      if (catalogRole && canFire('nicheOpened', sp)) {
         const candidates = getCandidatesForRole(catalogRole)
           .filter(c => !nextState.species.some(s => s.id === c.id))
         if (candidates.length > 0) {
@@ -93,9 +136,9 @@ export function checkThresholds(prevState, nextState) {
             cycle,
             speciesId: sp.id,
             data: {
-              extinctName:  sp.name,
+              extinctName: sp.name,
               catalogRole,
-              candidates:   candidates.map(c => ({
+              candidates:  candidates.map(c => ({
                 id:            c.id,
                 name:          c.name,
                 candidateType: c.candidateType,
@@ -106,34 +149,27 @@ export function checkThresholds(prevState, nextState) {
         }
       }
 
-      // Cascade risk: flag species that depended on this one
+      // Cascade risk (requires: understood — on the affected species, not the extinct one)
       const { predators, prey } = rel[sp.id] || { predators: [], prey: [] }
 
-      // Predators that ate this species have lost a food source
       for (const predId of predators) {
         const predSp = nextMap[predId]
         if (!predSp || predSp.population === 0) continue
-        // Only flag if this was their only or primary food source
+        if (!canFire('cascadeRisk', predSp)) continue
         const otherPrey = (rel[predId]?.prey || []).filter(id => id !== sp.id)
         const hasOtherFood = otherPrey.some(id => (nextMap[id]?.population ?? 0) > 0)
         events.push({
           type:      EVENT_TYPES.CASCADE_RISK,
           cycle,
           speciesId: predId,
-          data: {
-            name:          predSp.name,
-            trigger:       'preyLost',
-            lostSpecies:   sp.name,
-            hasOtherFood,
-          },
+          data: { name: predSp.name, trigger: 'preyLost', lostSpeciesId: sp.id, lostSpecies: sp.name, hasOtherFood },
         })
       }
 
-      // Prey that this species kept in check may now surge
       for (const preyId of prey) {
         const preySp = nextMap[preyId]
         if (!preySp || preySp.population === 0) continue
-        // Only flag if this was their only predator
+        if (!canFire('cascadeRisk', preySp)) continue
         const otherPredators = (rel[preyId]?.predators || []).filter(id => id !== sp.id)
         const hasOtherPredators = otherPredators.some(id => (nextMap[id]?.population ?? 0) > 0)
         if (!hasOtherPredators) {
@@ -141,57 +177,44 @@ export function checkThresholds(prevState, nextState) {
             type:      EVENT_TYPES.CASCADE_RISK,
             cycle,
             speciesId: preyId,
-            data: {
-              name:        preySp.name,
-              trigger:     'predatorLost',
-              lostSpecies: sp.name,
-            },
+            data: { name: preySp.name, trigger: 'predatorLost', lostSpeciesId: sp.id, lostSpecies: sp.name },
           })
         }
       }
 
-      continue  // no further checks for an extinct species
+      continue
     }
 
-    if (!wasAlive) continue  // already extinct, skip
+    if (!wasAlive) continue
 
     const baseline = sp.history.baseline
 
-    // Extinction warning: below 15 % of baseline
-    if (sp.population < baseline * 0.15 && prev.population >= baseline * 0.15) {
+    // Extinction warning (requires: understood)
+    if (canFire('extinctionWarning', sp) && sp.population < baseline * 0.15 && prev.population >= baseline * 0.15) {
       events.push({
         type:      EVENT_TYPES.EXTINCTION_WARNING,
         cycle,
         speciesId: sp.id,
-        data: {
-          name:       sp.name,
-          population: sp.population,
-          baseline,
-          pct:        sp.population / baseline,
-        },
+        data: { name: sp.name, population: sp.population, baseline, pct: sp.population / baseline },
       })
     }
 
-    // Population crisis: dropped more than 30 % in one cycle
-    if (prev.population > 0) {
+    // Population crisis (requires: understood)
+    if (canFire('populationCrisis', sp) && prev.population > 0) {
       const drop = (prev.population - sp.population) / prev.population
       if (drop > 0.30) {
         events.push({
           type:      EVENT_TYPES.POPULATION_CRISIS,
           cycle,
           speciesId: sp.id,
-          data: {
-            name:           sp.name,
-            prevPopulation: prev.population,
-            nextPopulation: sp.population,
-            dropPct:        drop,
-          },
+          data: { name: sp.name, prevPopulation: prev.population, nextPopulation: sp.population, dropPct: drop },
         })
       }
     }
 
-    // Population surge: new all-time high, and meaningfully above starting baseline
+    // Population surge (requires: known)
     if (
+      canFire('populationSurge', sp) &&
       sp.population > sp.history.peakPopulation &&
       sp.population > sp.history.baseline * 1.2
     ) {
@@ -199,47 +222,34 @@ export function checkThresholds(prevState, nextState) {
         type:      EVENT_TYPES.POPULATION_SURGE,
         cycle,
         speciesId: sp.id,
-        data: {
-          name:           sp.name,
-          population:     sp.population,
-          previousPeak:   sp.history.peakPopulation,
-        },
+        data: { name: sp.name, population: sp.population, previousPeak: sp.history.peakPopulation },
       })
     }
 
-    // Population low: new all-time low — but only fires when entering new-low territory
-    // from a meaningful recovery (prev was ≥10 % above the old record low).
-    // During continuous declines the guard prevents re-firing every cycle.
+    // Population low (requires: known)
     if (
+      canFire('populationLow', sp) &&
       cycle > 20 &&
       sp.population > 0 &&
       sp.population < prev.history.lowestPopulation &&
       prev.population > prev.history.lowestPopulation * 1.10 &&
-      sp.population >= sp.history.baseline * 0.15  // below this, extinctionWarning fires instead
+      sp.population >= sp.history.baseline * 0.15
     ) {
       events.push({
         type:      EVENT_TYPES.POPULATION_LOW,
         cycle,
         speciesId: sp.id,
-        data: {
-          name:        sp.name,
-          population:  sp.population,
-          previousLow: prev.history.lowestPopulation,
-          baseline:    sp.history.baseline,
-        },
+        data: { name: sp.name, population: sp.population, previousLow: prev.history.lowestPopulation, baseline: sp.history.baseline },
       })
     }
 
-    // Unusually stable: 20+ consecutive cycles of <2 % change (not in first 30 cycles)
-    if (sp.history.stableCycles === 20 && cycle > 30) {
+    // Population stable (requires: known)
+    if (canFire('populationStable', sp) && sp.history.stableCycles === 20 && cycle > 30) {
       events.push({
         type:      EVENT_TYPES.POPULATION_STABLE,
         cycle,
         speciesId: sp.id,
-        data: {
-          name:       sp.name,
-          population: sp.population,
-        },
+        data: { name: sp.name, population: sp.population },
       })
     }
   }
@@ -249,6 +259,7 @@ export function checkThresholds(prevState, nextState) {
   for (const sp of nextState.species) {
     const prev = prevMap[sp.id]
     if (!prev) continue
+    if (!canFire('firstBiomeEntry', sp)) continue  // requires: known
 
     const prevSubs = prev.subpopulations || []
     const nextSubs = sp.subpopulations   || []
@@ -289,8 +300,8 @@ export function checkThresholds(prevState, nextState) {
         })
       }
 
-      // Speciation candidate: adaptation threshold just crossed
-      if (
+      // Speciation candidate: adaptation threshold just crossed (requires: understood)
+      if (canFire('speciationCandidate', sp) &&
         sub.adaptationCycles >= ADAPTATION_THRESHOLD &&
         prevSub.adaptationCycles < ADAPTATION_THRESHOLD
       ) {
@@ -357,6 +368,122 @@ export function checkThresholds(prevState, nextState) {
         data: {
           name:   next.name,
           health: next.health,
+        },
+      })
+    }
+  }
+
+  return events
+}
+
+// ─── Discovery checks ─────────────────────────────────────────────────────────
+
+export function checkDiscovery(prevState, nextState) {
+  const events  = []
+  const cycle   = nextState.cycle
+  const prevMap = indexById(prevState.species)
+
+  for (const sp of nextState.species) {
+    if (sp.population <= 0) continue
+
+    const prev     = prevMap[sp.id]
+    if (!prev) continue
+
+    const prevDisc = prev.discovery || { sightingScore: 0, sightingCount: 0 }
+    const nextDisc = sp.discovery   || { sightingScore: 0, sightingCount: 0 }
+
+    // firstSighting: sightingScore crossed 1.0 for the first time
+    if (prevDisc.sightingScore < 1.0 && nextDisc.sightingScore >= 1.0) {
+      events.push({
+        type:      EVENT_TYPES.FIRST_SIGHTING,
+        cycle,
+        speciesId: sp.id,
+        data: {
+          name:      sp.name,
+          population: sp.population,
+          biomeName: sp.homeBiome,
+        },
+      })
+    }
+
+    // subsequentSighting: sightingCount went from 1-4 to higher (max 5)
+    if (
+      nextDisc.sightingCount > prevDisc.sightingCount &&
+      prevDisc.sightingCount >= 1 &&
+      nextDisc.sightingCount <= 5
+    ) {
+      events.push({
+        type:      EVENT_TYPES.SUBSEQUENT_SIGHTING,
+        cycle,
+        speciesId: sp.id,
+        data: {
+          name:         sp.name,
+          population:   sp.population,
+          sightingCount: nextDisc.sightingCount,
+        },
+      })
+    }
+
+    // studySuggested: sightingCount just reached 3, species not yet formally named
+    if (prevDisc.sightingCount < 3 && nextDisc.sightingCount >= 3 && !sp.milestones.named) {
+      events.push({
+        type:      EVENT_TYPES.STUDY_SUGGESTED,
+        cycle,
+        speciesId: sp.id,
+        data: {
+          name: sp.name,
+        },
+      })
+    }
+  }
+
+  return events
+}
+
+// ─── Research checks ──────────────────────────────────────────────────────────
+
+export function checkResearch(prevState, nextState) {
+  const events = []
+  const cycle  = nextState.cycle
+
+  const prevResearch = prevState.research || { active: null, queue: [], history: [] }
+  const nextResearch = nextState.research || { active: null, queue: [], history: [] }
+
+  // studyCompleted: active project was just completed (moved to history)
+  if (
+    prevResearch.active !== null &&
+    nextResearch.active?.id !== prevResearch.active.id &&
+    nextResearch.history.length > prevResearch.history.length
+  ) {
+    const completed = nextResearch.history[nextResearch.history.length - 1]
+    events.push({
+      type:  EVENT_TYPES.STUDY_COMPLETED,
+      cycle,
+      speciesId: completed.targetId,
+      data: {
+        tier:       completed.type,
+        targetName: completed.targetName,
+        name:       completed.name,
+      },
+    })
+  }
+
+  // researchStarted: a new project became active (prev had no active or a different one)
+  if (
+    nextResearch.active !== null &&
+    prevResearch.active?.id !== nextResearch.active.id
+  ) {
+    // Only fire if this is a fresh start (not a carry-over from prev state)
+    // We detect "fresh start" by checking if startCycle === current cycle
+    if (nextResearch.active.startCycle === cycle) {
+      events.push({
+        type:  EVENT_TYPES.RESEARCH_STARTED,
+        cycle,
+        speciesId: nextResearch.active.targetId,
+        data: {
+          name:           nextResearch.active.name,
+          targetName:     nextResearch.active.targetName,
+          durationCycles: nextResearch.active.durationCycles,
         },
       })
     }
