@@ -260,15 +260,32 @@ export function simulateCycle(state) {
 
 // ─── Batch runner ─────────────────────────────────────────────────────────────
 
+// Event types that require an explicit player response before Continue is available.
+const REQUIRES_DECISION = new Set([
+  'extinction', 'extinctionWarning', 'populationCrisis',
+  'cascadeRisk', 'biomeStress', 'nicheOpened',
+])
+
+function stampEvents(rawEvents) {
+  return rawEvents.map(e => {
+    let requiresDecision = REQUIRES_DECISION.has(e.type)
+    // cascadeRisk only produces a crisis entry when prey is lost with no other food source
+    if (e.type === 'cascadeRisk') {
+      requiresDecision = e.data.trigger === 'preyLost' && !e.data.hasOtherFood
+    }
+    return { ...e, requiresDecision, resolved: false }
+  })
+}
+
 export function runCycles(state, cycleCount) {
-  const events = []
+  const newEvents = []
   for (let i = 0; i < cycleCount; i++) {
     const prev = state
     state = simulateCycle(state)
-    const cycleEvents = checkThresholds(prev, state)
-    events.push(...cycleEvents)
+    const cycleEvents = stampEvents(checkThresholds(prev, state))
+    newEvents.push(...cycleEvents)
 
-    // Accumulate open niches from NICHE_OPENED events into state
+    // Accumulate open niches from nicheOpened events into state
     for (const ev of cycleEvents) {
       if (ev.type === 'nicheOpened') {
         state = {
@@ -287,7 +304,11 @@ export function runCycles(state, cycleCount) {
       }
     }
   }
-  return { state, events }
+
+  return {
+    state: { ...state, events: [...state.events, ...newEvents] },
+    events: newEvents,
+  }
 }
 
 // ─── Initial state factory ────────────────────────────────────────────────────
@@ -300,10 +321,11 @@ export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
     randomSeed:       world.seed,
     worldDesignation: world.designation,
     researcher: {
-      name:      researcherName,
-      log:       [],
-      tools:     [],
-      resources: { fieldData: 0, specimens: 0 },
+      name:                   researcherName,
+      log:                    [],
+      tools:                  [],
+      resources:              { fieldData: 0, specimens: 0 },
+      lastSummaryViewedCycle: 0,
     },
     biomes: {
       highgrowth:  { id: 'highgrowth',  name: 'Highgrowth',   health: 1.0, stress: world.biomeStress.highgrowth },

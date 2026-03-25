@@ -4,6 +4,17 @@
   min-height: 100dvh;
 }
 
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
 /* ── Section shell ── */
 .section {
   padding: 20px 24px;
