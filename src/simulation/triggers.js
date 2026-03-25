@@ -1,4 +1,5 @@
 import { ADAPTATION_THRESHOLD, STABILIZED_CYCLES } from './migration.js'
+import { getCandidatesForRole } from '../data/catalog.js'
 
 // Event threshold checks — pure function, no side effects.
 // Takes (prevState, nextState), returns array of event objects.
@@ -22,6 +23,7 @@ const EVENT_TYPES = {
   SUBPOPULATION_STABILIZED: 'subpopulationStabilized',
   SUBPOPULATION_FAILED:     'subpopulationFailed',
   SPECIATION_CANDIDATE:     'speciationCandidate',
+  NICHE_OPENED:             'nicheOpened',
 }
 
 export { EVENT_TYPES }
@@ -79,6 +81,30 @@ export function checkThresholds(prevState, nextState) {
           peakPopulation:   sp.history.peakPopulation,
         },
       })
+
+      // Niche opened: surface catalog candidates for the vacated role
+      const catalogRole = sp.catalogRole
+      if (catalogRole) {
+        const candidates = getCandidatesForRole(catalogRole)
+          .filter(c => !nextState.species.some(s => s.id === c.id))
+        if (candidates.length > 0) {
+          events.push({
+            type:      EVENT_TYPES.NICHE_OPENED,
+            cycle,
+            speciesId: sp.id,
+            data: {
+              extinctName:  sp.name,
+              catalogRole,
+              candidates:   candidates.map(c => ({
+                id:            c.id,
+                name:          c.name,
+                candidateType: c.candidateType,
+                fieldNote:     c.fieldNote,
+              })),
+            },
+          })
+        }
+      }
 
       // Cascade risk: flag species that depended on this one
       const { predators, prey } = rel[sp.id] || { predators: [], prey: [] }

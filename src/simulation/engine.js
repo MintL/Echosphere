@@ -2,6 +2,7 @@ import { mulberry32, noise, advanceSeed } from './rng.js'
 import { generateWorld } from './worldgen.js'
 import { checkThresholds } from './triggers.js'
 import { processMigration } from './migration.js'
+import { getCatalogSpecies } from '../data/catalog.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -264,7 +265,27 @@ export function runCycles(state, cycleCount) {
   for (let i = 0; i < cycleCount; i++) {
     const prev = state
     state = simulateCycle(state)
-    events.push(...checkThresholds(prev, state))
+    const cycleEvents = checkThresholds(prev, state)
+    events.push(...cycleEvents)
+
+    // Accumulate open niches from NICHE_OPENED events into state
+    for (const ev of cycleEvents) {
+      if (ev.type === 'nicheOpened') {
+        state = {
+          ...state,
+          openNiches: [
+            ...state.openNiches,
+            {
+              extinctSpeciesId: ev.speciesId,
+              extinctName:      ev.data.extinctName,
+              catalogRole:      ev.data.catalogRole,
+              cycle:            ev.cycle,
+              candidates:       ev.data.candidates,
+            },
+          ],
+        }
+      }
+    }
   }
   return { state, events }
 }
@@ -312,7 +333,83 @@ export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
         populationModeled: false,
       },
     })),
-    events:  [],
-    catalog: [],
+    events:     [],
+    openNiches: [],
+    catalog:    [],
+  }
+}
+
+// ─── Catalog introduction ─────────────────────────────────────────────────────
+//
+// Adds a catalog species to a running simulation as a founding population.
+// The researcher has chosen to introduce this species to fill an open niche.
+// Applies the same per-world variance as worldgen so the introduced species
+// feels like it belongs to this world.
+//
+// Returns the new state, or the unchanged state if the species is unknown,
+// already present, or already extinct in this world.
+
+export function introduceSpecies(state, catalogSpeciesId) {
+  const def = getCatalogSpecies(catalogSpeciesId)
+  if (!def) return state
+
+  // Prevent double-introduction or re-introduction of a previously extinct species
+  if (state.species.some(s => s.id === def.id)) return state
+
+  // Apply light variance using the world seed so it's deterministic per world
+  const rng = mulberry32((state.randomSeed ^ def.id.split('').reduce((h, c) => h * 31 + c.charCodeAt(0), 0)) >>> 0)
+  const vary = (base, range) => base * (1 + (rng() - 0.5) * 2 * range)
+
+  const variedEats = def.eats.map(eat => ({
+    ...eat,
+    attackRate: vary(eat.attackRate, 0.20),
+    efficiency: vary(eat.efficiency, 0.08),
+  }))
+
+  const pop = def.introPopulation
+
+  const newSpecies = {
+    ...def,
+    startingPopulation: pop,
+    naturalDeathRate:   vary(def.naturalDeathRate, 0.15),
+    biomeComfort:       Object.fromEntries(
+      Object.entries(def.biomeComfort).map(([b, v]) => [b, v === 0 ? 0 : Math.min(1, Math.max(0.1, vary(v, 0.10)))])
+    ),
+    eats:               variedEats,
+    ...(def.naturalGrowthRate !== undefined
+      ? { naturalGrowthRate: vary(def.naturalGrowthRate, 0.15) }
+      : {}),
+
+    population:        pop,
+    currentBiome:      def.homeBiome,
+    migrationPressure: 0,
+    subpopulations:    [],
+    history: {
+      baseline:           pop,
+      previousPopulation: pop,
+      peakPopulation:     pop,
+      lowestPopulation:   pop,
+      stableCycles:       0,
+      cyclesObserved:     0,
+      extinctCycle:       null,
+    },
+    milestones: {
+      observed:          false,
+      named:             false,
+      roleIdentified:    false,
+      behaviorMapped:    false,
+      populationModeled: false,
+    },
+  }
+
+  // Close the matching open niche (if any)
+  const openNiches = state.openNiches.filter(n =>
+    !(n.catalogRole === def.catalogRole && n.candidates.some(c => c.id === def.id))
+  )
+
+  return {
+    ...state,
+    species:    [...state.species, newSpecies],
+    openNiches,
   }
 }

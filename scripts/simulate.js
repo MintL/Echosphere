@@ -4,7 +4,7 @@
 // Runs N independent 500-cycle simulations with different seeds and checks
 // whether ecosystem dynamics meet the design criteria from CLAUDE.md.
 
-import { createInitialState, simulateCycle } from '../src/simulation/engine.js'
+import { createInitialState, simulateCycle, introduceSpecies } from '../src/simulation/engine.js'
 import { checkThresholds } from '../src/simulation/triggers.js'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -12,6 +12,7 @@ import { checkThresholds } from '../src/simulation/triggers.js'
 const RUNS          = 10
 const CYCLES        = 500
 const EARLY_WINDOW  = 50     // "early extinction" means within this many cycles
+const STABLE_WINDOW = 250    // first extinction must occur within this many cycles
 const POP_MAX       = 10_000
 const EVENT_MIN     = 20
 const EVENT_MAX     = 100
@@ -19,6 +20,14 @@ const SURVIVE_MIN   = 6
 const TOTAL_SPECIES = 11
 const FLAT_CYCLES   = 200
 const OSC_CV_MIN    = 0.06   // CV threshold for "visible oscillation"
+
+// Catalog introduction settings
+// AUTO_INTRO: simulate the researcher always choosing to introduce a replacement
+// INTRO_DELAY: cycles between niche opening and introduction (researcher deliberation)
+// INTRO_CANDIDATE: which candidate type to always pick ('A' = safest analog)
+const AUTO_INTRO      = true
+const INTRO_DELAY     = 10
+const INTRO_CANDIDATE = 'A'
 
 // ─── ANSI helpers ─────────────────────────────────────────────────────────────
 
@@ -30,6 +39,36 @@ const bold   = s => `\x1b[1m${s}\x1b[0m`
 const pass   = l  => `${green('✓')} ${l}`
 const fail   = l  => `${red('✗')} ${l}`
 const warn   = l  => `${yellow('⚠')} ${l}`
+
+// ─── Sparklines ───────────────────────────────────────────────────────────────
+
+const SPARK_CHARS = '▁▂▃▄▅▆▇█'
+const SPARK_WIDTH = 80
+
+function sparkline(data, extinctCycle, totalCycles) {
+  if (!data || data.length === 0) return dim('·'.repeat(SPARK_WIDTH))
+
+  // Resample to SPARK_WIDTH columns
+  const resampled = []
+  for (let i = 0; i < SPARK_WIDTH; i++) {
+    const idx = Math.min(Math.floor(i / SPARK_WIDTH * data.length), data.length - 1)
+    resampled.push(data[idx])
+  }
+
+  const max = Math.max(...resampled)
+  if (max === 0) return dim('▁'.repeat(SPARK_WIDTH))
+
+  // Mark the approximate column where extinction happened
+  const extCol = extinctCycle !== null
+    ? Math.floor(extinctCycle / totalCycles * SPARK_WIDTH)
+    : -1
+
+  return resampled.map((v, i) => {
+    const bar = SPARK_CHARS[Math.min(7, Math.floor(v / max * 8))]
+    if (i >= extCol && extCol !== -1) return dim('·')
+    return bar
+  }).join('')
+}
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
@@ -56,23 +95,63 @@ function simulate(seed) {
 
   for (const sp of state.species) series[sp.id] = [sp.population]
 
-  const events = []
+  const events        = []
+  const introductions = []                // { id, name, catalogRole, candidateType, cycle }
+  const pendingIntros = []                // { candidateId, dueAtCycle }
+
   for (let i = 0; i < CYCLES; i++) {
+    const cycle = i + 1
+
+    // Apply any pending introductions due this cycle
+    if (AUTO_INTRO) {
+      for (const intro of pendingIntros) {
+        if (intro.dueAtCycle !== cycle) continue
+        if (state.species.some(s => s.id === intro.candidateId)) continue  // already present
+        const prevLen = state.species.length
+        state = introduceSpecies(state, intro.candidateId)
+        if (state.species.length > prevLen) {
+          const sp = state.species.at(-1)
+          series[sp.id] = []   // series starts from introduction cycle
+          introductions.push({
+            id: sp.id, name: sp.name,
+            catalogRole: sp.catalogRole, candidateType: sp.candidateType,
+            cycle,
+          })
+        }
+      }
+    }
+
     const prev = state
     state = simulateCycle(state)
-    events.push(...checkThresholds(prev, state))
+    const cycleEvents = checkThresholds(prev, state)
+    events.push(...cycleEvents)
+
+    // Queue introductions when niches open
+    if (AUTO_INTRO) {
+      for (const ev of cycleEvents) {
+        if (ev.type !== 'nicheOpened') continue
+        const pick = ev.data.candidates.find(c => c.candidateType === INTRO_CANDIDATE)
+        if (pick && !pendingIntros.some(p => p.candidateId === pick.id)) {
+          pendingIntros.push({ candidateId: pick.id, dueAtCycle: cycle + INTRO_DELAY })
+        }
+      }
+    }
+
     if (i % 5 === 0) {
-      for (const sp of state.species) series[sp.id].push(sp.population)
+      for (const sp of state.species) {
+        if (!series[sp.id]) series[sp.id] = []
+        series[sp.id].push(sp.population)
+      }
     }
   }
 
-  return { finalState: state, events, series }
+  return { finalState: state, events, series, introductions }
 }
 
 // ─── Analyse one run ──────────────────────────────────────────────────────────
 
 function analyse(seed, runIndex) {
-  const { finalState, events, series } = simulate(seed)
+  const { finalState, events, series, introductions } = simulate(seed)
 
   const stats = finalState.species.map(sp => ({
     id:           sp.id,
@@ -83,12 +162,17 @@ function analyse(seed, runIndex) {
     peakPop:      sp.history.peakPopulation,
     maxStable:    sp.history.stableCycles,
     earlyExtinct: sp.history.extinctCycle !== null && sp.history.extinctCycle <= EARLY_WINDOW,
+    isCatalog:    sp.candidateType !== undefined,
   }))
 
-  const extinctions  = stats.filter(s => s.extinct)
-  const earlyExt     = extinctions.filter(s => s.earlyExtinct)
-  const extBefore100 = extinctions.filter(s => s.extinctCycle !== null && s.extinctCycle <= 100)
-  const survivors    = TOTAL_SPECIES - extinctions.length
+  const extinctions   = stats.filter(s => s.extinct)
+  const startingExt   = extinctions.filter(s => !s.isCatalog)
+  const earlyExt      = startingExt.filter(s => s.earlyExtinct)
+  const extBefore100  = startingExt.filter(s => s.extinctCycle !== null && s.extinctCycle <= 100)
+  const extBefore150  = startingExt.filter(s => s.extinctCycle !== null && s.extinctCycle <= STABLE_WINDOW)
+  // Count all alive species — starting survivors plus any introduced catalog species that
+  // are still alive. Catalog introductions fill vacated niches and count toward ecosystem health.
+  const survivors     = stats.filter(s => !s.extinct).length
   const explosions   = stats.filter(s => s.peakPop > POP_MAX)
   // A species is "flat" only if its entire series has very low variance AND
   // it isn't near-extinct (near-extinct species show false-flat near zero).
@@ -111,6 +195,7 @@ function analyse(seed, runIndex) {
   const checks = {
     noEarlyExtinction:  earlyExt.length === 0,
     notTooManyExt100:   extBefore100.length <= 3,
+    extinctionBy150:    extBefore150.length >= 1,
     noPopExplosion:     explosions.length === 0,
     eventCountOk:       events.length >= EVENT_MIN && events.length <= EVENT_MAX,
     enoughSurvivors:    survivors >= SURVIVE_MIN,
@@ -123,8 +208,8 @@ function analyse(seed, runIndex) {
     passed:  Object.values(checks).every(Boolean),
     passing: Object.values(checks).filter(Boolean).length,
     total:   Object.keys(checks).length,
-    stats, survivors, extinctions, earlyExt, extBefore100,
-    explosions, flatLines, events, checks, oscPairs, series,
+    stats, survivors, extinctions, earlyExt, extBefore100, extBefore150,
+    explosions, flatLines, events, checks, oscPairs, series, introductions,
   }
 }
 
@@ -144,6 +229,9 @@ function printRun(r) {
   console.log(`  ${c.notTooManyExt100
     ? pass('≤3 extinctions before cycle 100')
     : fail(`Extinctions before c100: ${r.extBefore100.map(s => s.name).join(', ')}`)}`)
+  console.log(`  ${c.extinctionBy150
+    ? pass(`≥1 extinction before cycle ${STABLE_WINDOW} (${r.extBefore150.map(s => s.name).join(', ')})`)
+    : fail(`No extinction in first ${STABLE_WINDOW} cycles (too stable)`)}`)
   console.log(`  ${c.noPopExplosion
     ? pass('No population above 10 000')
     : fail(`Explosions: ${r.explosions.map(s => `${s.name}=${Math.round(s.peakPop)}`).join(', ')}`)}`)
@@ -163,6 +251,25 @@ function printRun(r) {
   for (const o of r.oscPairs) {
     const marker = o.hasOsc ? dim('  ~') : yellow('  →')
     console.log(`${marker} ${dim(`${o.label.padEnd(20)} prey CV=${(o.preyCV * 100).toFixed(1).padStart(5)}%  pred CV=${(o.predCV * 100).toFixed(1).padStart(5)}%`)}`)
+  }
+
+  // Oscillation sparklines
+  console.log(dim(`\n  ${'Species'.padEnd(14)}${'0'.padStart(1)}${' '.repeat(SPARK_WIDTH - 6)}${CYCLES}`))
+  for (const sp of r.stats) {
+    const spark = sparkline(r.series[sp.id] || [], sp.extinctCycle, CYCLES)
+    const label = sp.name.padEnd(14)
+    const peak  = sp.peakPop > 0 ? dim(` pk:${String(Math.round(sp.peakPop)).padStart(5)}`) : ''
+    const end   = sp.extinct ? red(' ✗') : green(' ✓')
+    console.log(`  ${dim(label)}${spark}${peak}${end}`)
+  }
+
+  if (r.introductions.length > 0) {
+    const introLines = r.introductions.map(intro => {
+      const sp = r.stats.find(s => s.id === intro.id)
+      const status = (sp && !sp.extinct) ? green('survived') : red('extinct')
+      return `${intro.name} @c${intro.cycle} [${status}]`
+    })
+    console.log(dim(`  Introduced:  ${introLines.join(', ')}`))
   }
 
   if (r.extinctions.length > 0) {
@@ -195,6 +302,7 @@ function printSummary(results) {
   const failModes = [
     ['Early extinctions (≤50 cycles)',    r => !r.checks.noEarlyExtinction],
     ['Extinctions before c100 (>3)',      r => !r.checks.notTooManyExt100],
+    [`No extinction by cycle ${STABLE_WINDOW}`, r => !r.checks.extinctionBy150],
     ['Population explosion (>10k)',       r => !r.checks.noPopExplosion],
     ['Event count out of range',          r => !r.checks.eventCountOk],
     ['Too few survivors at c500',         r => !r.checks.enoughSurvivors],
@@ -226,8 +334,8 @@ function printSummary(results) {
     console.log(dim(`  ${type.padEnd(24)} ${count}`))
   }
 
-  // Species survival rate
-  console.log('\nSpecies survival rate:')
+  // Starting species survival rate
+  console.log('\nStarting species survival rate:')
   const survivalCount = {}
   for (const r of results) {
     for (const sp of r.stats) {
@@ -239,6 +347,27 @@ function printSummary(results) {
     const bar   = '█'.repeat(Math.round(pct / 5)).padEnd(20)
     const color = pct === 100 ? green : pct >= 70 ? yellow : red
     console.log(`  ${name.padEnd(12)} ${color(bar)} ${String(pct).padStart(3)}%`)
+  }
+
+  // Catalog introductions summary
+  const allIntros = results.flatMap(r => r.introductions)
+  if (allIntros.length > 0) {
+    console.log('\nCatalog introductions (across all runs):')
+    const introStats = {}
+    for (const r of results) {
+      for (const intro of r.introductions) {
+        if (!introStats[intro.name]) introStats[intro.name] = { introduced: 0, survived: 0 }
+        introStats[intro.name].introduced++
+        const sp = r.stats.find(s => s.id === intro.id)
+        if (sp && !sp.extinct) introStats[intro.name].survived++
+      }
+    }
+    for (const [name, s] of Object.entries(introStats)) {
+      const survPct = Math.round(s.survived / s.introduced * 100)
+      const bar     = '█'.repeat(Math.round(survPct / 5)).padEnd(20)
+      const color   = survPct >= 70 ? green : survPct >= 40 ? yellow : red
+      console.log(`  ${name.padEnd(12)} ${color(bar)} ${String(survPct).padStart(3)}%  ${dim(`(introduced ${s.introduced}/${results.length} runs)`)}`)
+    }
   }
 
   // Average final populations

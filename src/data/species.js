@@ -42,6 +42,7 @@ export const SPECIES_DEFS = [
   {
     id: 'feltmoss',
     name: 'Feltmoss',
+    catalogRole: 'producer',
     role: 'producer',
     homeBiome: 'highgrowth',
     borderBiome: null,
@@ -57,6 +58,7 @@ export const SPECIES_DEFS = [
   {
     id: 'nightroot',
     name: 'Nightroot',
+    catalogRole: 'producer',
     role: 'producer',
     homeBiome: 'understory',
     borderBiome: null,
@@ -72,6 +74,7 @@ export const SPECIES_DEFS = [
   {
     id: 'scaleweed',
     name: 'Scaleweed',
+    catalogRole: 'producer',
     role: 'producer',
     homeBiome: 'scorchFlats',
     borderBiome: null,
@@ -90,6 +93,7 @@ export const SPECIES_DEFS = [
   {
     id: 'vellin',
     name: 'Vellin',
+    catalogRole: 'primaryConsumer',
     role: 'grazer',
     homeBiome: 'highgrowth',
     borderBiome: null,
@@ -105,6 +109,7 @@ export const SPECIES_DEFS = [
   {
     id: 'woldren',
     name: 'Woldren',
+    catalogRole: 'primaryConsumer',
     role: 'browser',
     homeBiome: 'understory',
     borderBiome: null,
@@ -120,12 +125,13 @@ export const SPECIES_DEFS = [
   {
     id: 'brack',
     name: 'Brack',
+    catalogRole: 'primaryConsumer',
     role: 'crossBiomeFeeder',
     homeBiome: 'scorchFlats',
     borderBiome: 'highgrowth',
     borderPosition: 0.3,   // 70 % Scorch, 30 % Highgrowth border access
     startingPopulation: 75,
-    naturalDeathRate: 0.055,
+    naturalDeathRate: 0.065,
     movementTraits: ['walker', 'armored'],
     biomeComfort: { highgrowth: 0.6, understory: 0.0, scorchFlats: 1.0 },
     eats: [
@@ -137,12 +143,13 @@ export const SPECIES_DEFS = [
   {
     id: 'torrak',
     name: 'Torrak',
+    catalogRole: 'primaryConsumer',
     role: 'scorchSpecialist',
     homeBiome: 'scorchFlats',
     borderBiome: null,
     borderPosition: 0,
     startingPopulation: 170,
-    naturalDeathRate: 0.068,
+    naturalDeathRate: 0.076,
     movementTraits: ['walker', 'armored'],
     biomeComfort: { highgrowth: 0.0, understory: 0.0, scorchFlats: 1.0 },
     eats: [
@@ -155,6 +162,7 @@ export const SPECIES_DEFS = [
   {
     id: 'keth',
     name: 'Keth',
+    catalogRole: 'secondaryConsumer',
     role: 'predator',
     homeBiome: 'highgrowth',
     borderBiome: null,
@@ -170,6 +178,7 @@ export const SPECIES_DEFS = [
   {
     id: 'skethran',
     name: 'Skethran',
+    catalogRole: 'secondaryConsumer',
     role: 'rangingPredator',
     homeBiome: 'highgrowth',
     borderBiome: 'understory',
@@ -186,6 +195,7 @@ export const SPECIES_DEFS = [
   {
     id: 'mordath',
     name: 'Mordath',
+    catalogRole: 'apexPredator',
     role: 'apexPredator',
     homeBiome: 'highgrowth',
     borderBiome: null,
@@ -206,6 +216,7 @@ export const SPECIES_DEFS = [
   {
     id: 'grubmere',
     name: 'Grubmere',
+    catalogRole: 'decomposer',
     role: 'decomposer',
     homeBiome: 'understory',
     borderBiome: null,
