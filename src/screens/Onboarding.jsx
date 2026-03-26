@@ -7,14 +7,14 @@ export default function Onboarding() {
   const navigate = useNavigate()
 
   if (localStorage.getItem('echosphere_researcher')) {
-    return <Navigate to="/home" replace />
+    return <Navigate to="/" replace />
   }
 
   function handleBegin() {
     const trimmed = name.trim()
     if (!trimmed) return
     localStorage.setItem('echosphere_researcher', trimmed)
-    navigate('/home')
+    navigate('/')
   }
 
   function handleKeyDown(e) {

@@ -1,55 +1,18 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { loadSession, saveSession, CYCLE_DURATION_MS } from '../simulation/session.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, Navigate } from 'react-router-dom'
+import { loadSession, saveSession, onContinue, CYCLE_DURATION_MS } from '../simulation/session.js'
 import { clearState } from '../storage/db.js'
-import { simulateCycle, runCycles } from '../simulation/engine.js'
-import { checkThresholds } from '../simulation/triggers.js'
-import { spName } from '../utils/species.js'
+import { runCycles } from '../simulation/engine.js'
+import { eventToEntry } from '../data/text/events.js'
 import styles from './Home.module.css'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function computeTrend(sp) {
-  const pop      = sp.population
-  const prev     = sp.history.previousPopulation
-  const baseline = sp.history.baseline
-  if (pop < baseline * 0.15) return 'critical'
-  if (prev > 0 && (pop - prev) / prev < -0.05) return 'declining'
-  if (prev > 0 && (pop - prev) / prev > 0.05 && pop > baseline) return 'thriving'
-  return 'stable'
-}
-
-function biomeStatus(health) {
-  if (health < 0.3) return 'critical'
-  if (health < 0.5) return 'stress'
-  if (health >= 0.75) return 'rising'
-  return 'stable'
+function isAtBottom(el) {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 50
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function SpeciesTrend({ pop, popDiff }) {
-  const diffCls = popDiff > 0 ? styles.diffPos : popDiff < 0 ? styles.diffNeg : styles.diffNeutral
-  const diffStr = popDiff > 0 ? `+${popDiff}` : popDiff < 0 ? `${popDiff}` : '—'
-  return (
-    <span className={styles.speciesTrend}>
-      <span className={styles.speciesPop}>{pop.toLocaleString()}</span>
-      <span className={`${styles.speciesDiff} ${diffCls}`}>({diffStr})</span>
-    </span>
-  )
-}
-
-function StatusLabel({ status }) {
-  const cls = {
-    stable:   styles.statusStable,
-    rising:   styles.statusRising,
-    stress:   styles.statusStress,
-    critical: styles.statusCritical,
-  }[status] || styles.statusStable
-  return <span className={`${styles.statusLabel} ${cls}`}>{status}</span>
-}
-
-const TREND_ORDER = { critical: 0, declining: 1, stable: 2, thriving: 3 }
 
 function ResearchStrip({ research, cycle, onTap }) {
   const r = research || { active: null, queue: [], history: [], suggestions: [] }
@@ -91,38 +54,107 @@ function ResearchStrip({ research, cycle, onTap }) {
   )
 }
 
+function EntryText({ segments, onNavigate }) {
+  return (
+    <p className={styles.entryText}>
+      {segments.map((seg, i) =>
+        seg.type === 'entity'
+          ? <span
+              key={i}
+              className="entity"
+              onClick={() => onNavigate(seg.entityType === 'sp' ? `/species/${seg.id}` : `/biome/${seg.id}`)}
+            >{seg.name}</span>
+          : seg.value
+      )}
+    </p>
+  )
+}
+
+function Entry({ cycle, type, segments, resolved, onRespond, onNavigate }) {
+  const cta = type === 'crisis'   ? 'I should respond →'
+            : type === 'decision' ? 'I should weigh in →'
+            : null
+
+  return (
+    <article className={`${styles.entry} ${styles[type] || ''}`}>
+      <div className={styles.entryMeta}>
+        <span className={styles.entryCycle}>Cycle {cycle}</span>
+        {type !== 'observation' && (
+          <span className={styles.entryType}>{type}</span>
+        )}
+      </div>
+      <EntryText segments={segments} onNavigate={onNavigate} />
+      {cta && !resolved && (
+        <button
+          className={`${styles.entryCta} ${styles[`entryCta_${type}`]}`}
+          onClick={onRespond}
+        >
+          {cta}
+        </button>
+      )}
+      {cta && resolved && (
+        <span className={styles.entryResolved}>Responded</span>
+      )}
+    </article>
+  )
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const navigate   = useNavigate()
-  const location   = useLocation()
-  const researcher = localStorage.getItem('echosphere_researcher') || 'Researcher'
+  const researcher = localStorage.getItem('echosphere_researcher')
 
-  const [gameState,   setGameState]   = useState(null)
-  const [loading,     setLoading]     = useState(true)
-  const [awayCycles,  setAwayCycles]  = useState(0)
-  const [awayMs,      setAwayMs]      = useState(0)
+  const feedRef        = useRef(null)
+  const markerRef      = useRef(null)
+  const atBottomRef    = useRef(true)
+  const prevCountRef   = useRef(0)
+  const initializedRef = useRef(false)
 
+  const [gameState,        setGameState]        = useState(null)
+  const [loading,          setLoading]          = useState(true)
+  const [awayCycles,       setAwayCycles]       = useState(0)
+  const [awayMs,           setAwayMs]           = useState(0)
+  const [visitMarkerCycle, setVisitMarkerCycle] = useState(0)
+  const [scrolledUp,       setScrolledUp]       = useState(false)
+  const [unseenCount,      setUnseenCount]      = useState(0)
+
+  // Load session
   useEffect(() => {
-    loadSession(researcher).then(({ state, hasNewEvents, awayCycles: ac, awayMs: am }) => {
-      setGameState(state)
+    if (!researcher) return
+    loadSession(researcher).then(({ state, awayCycles: ac, awayMs: am }) => {
+      const marker = state.researcher.lastSummaryViewedCycle ?? 0
+      setVisitMarkerCycle(marker)
+      const advanced = onContinue(state)
+      saveSession(advanced)
+      setGameState(advanced)
       setLoading(false)
       setAwayCycles(ac ?? 0)
       setAwayMs(am ?? 0)
-
-      if (!location.state && hasNewEvents) {
-        navigate('/summary', { replace: true })
-      }
     })
   }, [])
 
-  // Live cycle ticker — runs one cycle per CYCLE_DURATION_MS while on this screen
+  // Attach scroll listener once the feed is in the DOM
+  useEffect(() => {
+    const el = feedRef.current
+    if (!el) return
+    const onScroll = () => {
+      const atBottom = isAtBottom(el)
+      atBottomRef.current = atBottom
+      setScrolledUp(!atBottom)
+      if (atBottom) setUnseenCount(0)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [loading])
+
+  // Live cycle ticker
   useEffect(() => {
     if (!gameState) return
     const id = setInterval(() => {
       setGameState(prev => {
         if (!prev) return prev
-        const { state, events } = runCycles(prev, 1)
+        const { state } = runCycles(prev, 1)
         const saved = { ...state, lastSavedAt: Date.now() }
         saveSession(saved)
         return saved
@@ -131,6 +163,40 @@ export default function Home() {
     return () => clearInterval(id)
   }, [gameState !== null])  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Memoize entries — only recompute when the event list grows or resolved status changes.
+  // eventToEntry calls assembleEventText which uses module-level dedup sets; calling it on
+  // every simulation tick would exhaust the pool and return different text each render.
+  const eventKey = gameState
+    ? `${gameState.events.length}:${gameState.events.filter(e => e.resolved).length}`
+    : '0:0'
+  const entries = useMemo(() => { // eslint-disable-line react-hooks/exhaustive-deps
+    if (!gameState) return []
+    return gameState.events.flatMap((ev, i) => {
+      const entry = eventToEntry(ev, gameState)
+      if (!entry) return []
+      return [{ ...entry, resolved: ev.resolved, globalIdx: i }]
+    })
+  }, [eventKey])
+
+  // Sticky-bottom: runs after every render, guarded by initializedRef
+  useEffect(() => {
+    if (!initializedRef.current) return
+    const el = feedRef.current
+    if (!el) return
+    const newCount = entries.length
+    const added    = newCount - prevCountRef.current
+    if (added > 0) {
+      if (atBottomRef.current) {
+        el.scrollTop = el.scrollHeight
+      } else {
+        setUnseenCount(c => c + added)
+      }
+    }
+    prevCountRef.current = newCount
+  })
+
+  // ── Conditional exits — all hooks above this line ──
+  if (!researcher) return <Navigate to="/onboarding" replace />
   if (loading) {
     return (
       <div className={styles.page}>
@@ -139,41 +205,50 @@ export default function Home() {
     )
   }
 
-  const awayHours = Math.round(awayMs / (1000 * 60 * 60))
+  // ── Derived render values ──
+  const awayHours  = Math.round(awayMs / (1000 * 60 * 60))
+  const oldEntries = entries.filter(e => e.cycle <= visitMarkerCycle)
+  const newEntries = entries.filter(e => e.cycle >  visitMarkerCycle)
+  const hasMarker  = newEntries.length > 0 && visitMarkerCycle > 0
 
-  const species = gameState.species
-    .filter(sp => sp.population > 0 && (sp.discovery?.sightingCount ?? 0) >= 1)
-    .map(sp => ({
-      id:        sp.id,
-      name:      spName(sp),
-      homeBiome: sp.homeBiome,
-      pop:       Math.round(sp.population),
-      popDiff:   Math.round(sp.population - sp.history.previousPopulation),
-      trend:     computeTrend(sp),
-    }))
-    .sort((a, b) => (TREND_ORDER[a.trend] ?? 2) - (TREND_ORDER[b.trend] ?? 2))
+  function handleRespond(globalIdx) {
+    const updatedEvents = gameState.events.map((ev, i) =>
+      i === globalIdx ? { ...ev, resolved: true } : ev
+    )
+    const next = { ...gameState, events: updatedEvents }
+    setGameState(next)
+    saveSession(next)
+  }
 
-  const biomes = Object.values(gameState.biomes).map(b => ({
-    id:           b.id,
-    name:         b.name,
-    status:       b.surveyMilestones?.located ? biomeStatus(b.health) : null,
-  }))
+  function scrollToBottom() {
+    const el = feedRef.current
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    setUnseenCount(0)
+    setScrolledUp(false)
+  }
 
-  const unreadEvents   = gameState.events.filter(
-    e => e.cycle > gameState.researcher.lastSummaryViewedCycle
-  )
-  const actionable     = unreadEvents.filter(e => e.requiresDecision && !e.resolved)
-  const hasUnread      = unreadEvents.length > 0
+  function onFeedRef(el) {
+    feedRef.current = el
+    if (!el || initializedRef.current) return
+    initializedRef.current = true
+    if (hasMarker && markerRef.current) {
+      markerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+    } else {
+      el.scrollTop = el.scrollHeight
+    }
+    atBottomRef.current = isAtBottom(el)
+    setScrolledUp(!atBottomRef.current)
+    prevCountRef.current = entries.length
+  }
 
   return (
     <div className={styles.page}>
 
-      {/* ── Header ── */}
+      {/* ── Sticky header ── */}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <span className={styles.wordmark}>Echosphere</span>
-          <button className={styles.logBtn} onClick={() => navigate('/log')}>Log</button>
-          <button className={styles.logBtn} onClick={async () => { await clearState(); navigate('/home', { replace: true }); window.location.reload() }}>⌫ Reset</button>
+          <button className={styles.logBtn} onClick={async () => { await clearState(); navigate('/', { replace: true }); window.location.reload() }}>⌫ Reset</button>
         </div>
         <div className={styles.headerMeta}>
           Cycle {gameState.cycle}
@@ -197,78 +272,60 @@ export default function Home() {
             <span className={styles.resourceValue}>{gameState.researcher.resources.specimens}</span>
           </span>
         </div>
+        <div className={styles.researchRow}>
+          <ResearchStrip
+            research={gameState.research}
+            cycle={gameState.cycle}
+            onTap={() => navigate('/research')}
+          />
+        </div>
       </header>
 
-      <button className={styles.sessionStrip} onClick={() => navigate('/summary')}>
-        {hasUnread
-          ? <>
-              <span className={styles.sessionStripCount}>{unreadEvents.length}</span>
-              {unreadEvents.length === 1 ? 'new event' : 'new events'}
-              {actionable.length > 0 && <>
-                <span className={styles.sessionStripSep}>·</span>
-                <span className={styles.sessionStripCount}>{actionable.length}</span>
-                {actionable.length === 1 ? 'needs attention' : 'need attention'}
-              </>}
-            </>
-          : 'No new events'
-        }
-        <span className={styles.navArrow}>→</span>
-      </button>
+      {/* ── Log feed ── */}
+      <div className={styles.logFeed} ref={onFeedRef}>
+        {entries.length === 0 ? (
+          <p className={styles.emptyNote}>Nothing recorded yet.</p>
+        ) : (
+          <>
+            {oldEntries.map((entry, i) => (
+              <Entry
+                key={`old-${i}`}
+                cycle={entry.cycle}
+                type={entry.type}
+                segments={entry.segments}
+                resolved={entry.resolved}
+                onRespond={() => handleRespond(entry.globalIdx)}
+                onNavigate={navigate}
+              />
+            ))}
 
-      {/* ── Research ── */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>Research</span>
-        </div>
-        <ResearchStrip
-          research={gameState.research}
-          cycle={gameState.cycle}
-          onTap={() => navigate('/research')}
-        />
-      </section>
+            {hasMarker && (
+              <div className={styles.visitMarker} ref={markerRef}>
+                <span className={styles.visitMarkerLabel}>this visit</span>
+              </div>
+            )}
 
-      {/* ── Species + Ecosystem ── */}
-      <section className={`${styles.section} ${styles.sectionLast}`}>
-        <div className={styles.splitGrid}>
+            {newEntries.map((entry, i) => (
+              <Entry
+                key={`new-${i}`}
+                cycle={entry.cycle}
+                type={entry.type}
+                segments={entry.segments}
+                resolved={entry.resolved}
+                onRespond={() => handleRespond(entry.globalIdx)}
+                onNavigate={navigate}
+              />
+            ))}
+          </>
+        )}
+      </div>
 
-          <div className={styles.splitLeft}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionLabel}>Species</span>
-            </div>
-            <div className={styles.speciesList}>
-              {species.length === 0 ? (
-                <div className={styles.speciesEmpty}>No sightings yet.</div>
-              ) : species.map(sp => (
-                <div key={sp.id} className={styles.speciesRow}>
-                  <span
-                    className={`${styles.speciesName} ${sp.name === 'Unknown' ? styles.speciesUnknown : ''} entity`}
-                    onClick={() => navigate(`/species/${sp.id}`)}
-                  >{sp.name}</span>
-                  {sp.name !== 'Unknown' && <SpeciesTrend pop={sp.pop} popDiff={sp.popDiff} />}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.splitRight}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionLabel}>Ecosystem</span>
-            </div>
-            <div className={styles.biomeList}>
-              {biomes.map(b => (
-                <div key={b.id} className={styles.biomeRow}>
-                  <span className={`${styles.biomeRowName} entity`} onClick={() => navigate(`/biome/${b.id}`)}>{b.name}</span>
-                  {b.status
-                    ? <StatusLabel status={b.status} />
-                    : <span className={styles.biomeUncharacterized}>uncharacterized</span>
-                  }
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </section>
+      {/* ── Unseen pill ── */}
+      {scrolledUp && unseenCount > 0 && (
+        <button className={styles.unseenPill} onClick={scrollToBottom}>
+          {unseenCount} new {unseenCount === 1 ? 'entry' : 'entries'} ↓
+        </button>
+      )}
 
     </div>
   )

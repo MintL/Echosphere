@@ -3,7 +3,7 @@ import { loadState, saveState } from '../storage/db.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MINUTES_PER_CYCLE  = 5 / 60   // 5 seconds
+const MINUTES_PER_CYCLE  = 1 / 60        // 1 second real time per cycle (test speed)
 const MAX_CATCHUP_CYCLES = 200
 
 export const CYCLE_DURATION_MS = MINUTES_PER_CYCLE * 60 * 1000
