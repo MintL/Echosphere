@@ -76,6 +76,23 @@ Before any UI: build a script that runs thousands of cycles and reports outcomes
 - Extinctions are permanent and meaningful. The log records what was lost.
 - The world has agency. It does not wait for the player.
 
+## Testing
+
+Tests live in `src/simulation/__tests__/`. Run with `npm test`.
+
+- `compounds.test.js` — unit tests for `detectCompoundEvents` (all three compound types, edge cases)
+- `triggers.test.js` — unit tests for `checkThresholds` trigger conditions + integration test confirming compounds fire in real simulation runs
+
+**When to run tests:**
+- After any change to `src/simulation/` files
+- Before and after adding a new event type or trigger condition
+- When tuning simulation thresholds (add a test that asserts the new threshold fires/doesn't fire)
+
+**When to add tests:**
+- New compound type → add a unit test in `compounds.test.js`
+- New trigger → add a unit test in `triggers.test.js`
+- New threshold that was previously wrong → add a regression test
+
 ## Skills to Use
 
 | Situation | Skill |

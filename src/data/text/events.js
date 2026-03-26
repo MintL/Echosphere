@@ -10,6 +10,11 @@
 // and resolved against current game state at render time.
 
 import { spName } from '../../utils/species.js'
+import { assembleEventText } from './reactions.js'
+
+// Event types that use the full researcher-voice assembly instead of
+// the mechanical template. Falls back to mechanical if assembly returns null.
+const VOICED_TYPES = new Set(['populationCrisis', 'populationSurge'])
 
 const BIOME_NAMES = {
   highgrowth:  'Highgrowth',
@@ -178,7 +183,8 @@ const RENDERERS = {
     const lines = [
       `Unknown organism — spotted again in [biome:${ev.data.biomeName}]. ${Math.round(ev.data.population)} individuals. Behavior consistent with previous observations.`,
       `Unknown organism — another sighting. Population holding near ${Math.round(ev.data.population)}.`,
-      `Unknown organism — third confirmed sighting. Enough observations to consider a formal study.`,
+      `Unknown organism — fourth confirmed sighting. Pattern is consistent.`,
+      `Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.`,
     ]
     return {
       type: 'observation',
@@ -230,8 +236,25 @@ export function eventToEntry(event, gameState) {
   const renderer = RENDERERS[event.type]
   if (!renderer) return null
 
-  const rendered  = renderer(event)
-  const segments  = resolveSegments(rendered.template, gameState)
+  // For voiced event types, try the full researcher-voice assembly first.
+  if (VOICED_TYPES.has(event.type) && event.speciesId) {
+    const species = gameState?.species?.find(s => s.id === event.speciesId)
+    if (species) {
+      const voiced = assembleEventText(event, species, gameState)
+      if (voiced) {
+        return {
+          cycle:      event.cycle,
+          type:       renderer(event).type,
+          segments:   [{ type: 'text', value: voiced }],
+          speciesIds: [event.speciesId],
+          biomeIds:   [],
+        }
+      }
+    }
+  }
+
+  const rendered = renderer(event)
+  const segments = resolveSegments(rendered.template, gameState)
 
   return {
     cycle:      event.cycle,
