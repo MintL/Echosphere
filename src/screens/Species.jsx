@@ -117,7 +117,7 @@ export default function Species() {
 
   function handleBack() {
     setClosing(true)
-    setTimeout(() => navigate('/home', { state: { fromSummary: true } }), 300)
+    setTimeout(() => navigate(-1), 300)
   }
 
   if (loading) {

@@ -22,7 +22,7 @@ function trendArrow(popDiff) {
 // Filter events relevant to this biome
 function biomeEvents(events, biomeId) {
   return events
-    .filter(e => e.biomeId === biomeId || e.data?.biomeId === biomeId)
+    .filter(e => e.biomeId === biomeId || e.data?.biomeId === biomeId || e.data?.biome === biomeId)
     .sort((a, b) => b.cycle - a.cycle)
     .slice(0, 4)
 }
@@ -96,7 +96,7 @@ export default function Biome() {
 
   function handleBack() {
     setClosing(true)
-    setTimeout(() => navigate('/home', { state: { fromSummary: true } }), 300)
+    setTimeout(() => navigate(-1), 300)
   }
 
   if (loading) {
@@ -140,11 +140,11 @@ export default function Biome() {
       if (sp.population <= 0) return false
       if ((sp.discovery?.sightingCount ?? 0) < 1) return false
       const inHome  = sp.homeBiome === id
-      const inSub   = (sp.subpopulations ?? []).some(sub => sub.biomeId === id && sub.population > 0)
+      const inSub   = (sp.subpopulations ?? []).some(sub => sub.biome === id && sub.population > 0)
       return inHome || inSub
     })
     .map(sp => {
-      const subPop = (sp.subpopulations ?? []).find(sub => sub.biomeId === id)
+      const subPop = (sp.subpopulations ?? []).find(sub => sub.biome === id)
       const pop    = sp.homeBiome === id
         ? Math.round(sp.population)
         : Math.round(subPop?.population ?? 0)

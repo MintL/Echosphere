@@ -163,28 +163,26 @@ export default function Home() {
     return () => clearInterval(id)
   }, [gameState !== null])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Memoize entries — only recompute when the event list grows or resolved status changes.
-  // eventToEntry calls assembleEventText which uses module-level dedup sets; calling it on
-  // every simulation tick would exhaust the pool and return different text each render.
-  const eventKey = gameState
-    ? `${gameState.events.length}:${gameState.events.filter(e => e.resolved).length}`
-    : '0:0'
+  // Memoize entries on event count only — assembleEventText uses module-level dedup sets
+  // so calling it on every tick would exhaust the pool and change existing entry text.
+  // `resolved` is intentionally excluded: read live from gameState at render so that
+  // responding to a crisis updates the CTA without triggering a full recompute.
+  const eventCount = gameState?.events?.length ?? 0
   const entries = useMemo(() => { // eslint-disable-line react-hooks/exhaustive-deps
     if (!gameState) return []
     return gameState.events.flatMap((ev, i) => {
       const entry = eventToEntry(ev, gameState)
       if (!entry) return []
-      return [{ ...entry, resolved: ev.resolved, globalIdx: i }]
+      return [{ ...entry, globalIdx: i }]
     })
-  }, [eventKey])
+  }, [eventCount])
 
-  // Sticky-bottom: runs after every render, guarded by initializedRef
+  // Sticky-bottom: runs only when entry count changes (entries is memoized on eventCount)
   useEffect(() => {
     if (!initializedRef.current) return
     const el = feedRef.current
     if (!el) return
-    const newCount = entries.length
-    const added    = newCount - prevCountRef.current
+    const added = entries.length - prevCountRef.current
     if (added > 0) {
       if (atBottomRef.current) {
         el.scrollTop = el.scrollHeight
@@ -192,8 +190,8 @@ export default function Home() {
         setUnseenCount(c => c + added)
       }
     }
-    prevCountRef.current = newCount
-  })
+    prevCountRef.current = entries.length
+  }, [entries.length])
 
   // ── Conditional exits — all hooks above this line ──
   if (!researcher) return <Navigate to="/onboarding" replace />
@@ -287,13 +285,13 @@ export default function Home() {
           <p className={styles.emptyNote}>Nothing recorded yet.</p>
         ) : (
           <>
-            {oldEntries.map((entry, i) => (
+            {oldEntries.map(entry => (
               <Entry
-                key={`old-${i}`}
+                key={entry.globalIdx}
                 cycle={entry.cycle}
                 type={entry.type}
                 segments={entry.segments}
-                resolved={entry.resolved}
+                resolved={gameState.events[entry.globalIdx]?.resolved ?? false}
                 onRespond={() => handleRespond(entry.globalIdx)}
                 onNavigate={navigate}
               />
@@ -305,13 +303,13 @@ export default function Home() {
               </div>
             )}
 
-            {newEntries.map((entry, i) => (
+            {newEntries.map(entry => (
               <Entry
-                key={`new-${i}`}
+                key={entry.globalIdx}
                 cycle={entry.cycle}
                 type={entry.type}
                 segments={entry.segments}
-                resolved={entry.resolved}
+                resolved={gameState.events[entry.globalIdx]?.resolved ?? false}
                 onRespond={() => handleRespond(entry.globalIdx)}
                 onNavigate={navigate}
               />

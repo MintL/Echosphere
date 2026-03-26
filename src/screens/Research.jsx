@@ -58,7 +58,7 @@ export default function Research() {
 
   function handleBack() {
     setClosing(true)
-    setTimeout(() => navigate('/home', { state: { fromResearch: true } }), 280)
+    setTimeout(() => navigate(-1), 280)
   }
 
   async function handleStartOrQueue(projectId) {
