@@ -15,6 +15,19 @@
 import { getObservationDetail, resolveTokens } from './tokens.js'
 import { selectContext, resolveContextTokens, CONTEXT_TEMPLATES } from './context.js'
 
+// Side-effect imports: each file registers itself into OBSERVATION_POOLS on load.
+import './species/feltmoss.js'
+import './species/nightroot.js'
+import './species/scaleweed.js'
+import './species/vellin.js'
+import './species/woldren.js'
+import './species/brack.js'
+import './species/torrak.js'
+import './species/keth.js'
+import './species/skethran.js'
+import './species/mordath.js'
+import './species/grubmere.js'
+
 // ─── Session dedup sets ───────────────────────────────────────────────────────
 
 const _usedReactions = new Set()
