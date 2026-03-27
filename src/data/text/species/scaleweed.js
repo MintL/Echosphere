@@ -97,7 +97,7 @@ OBSERVATION_POOLS['scaleweed'] = {
     ],
     low: [
       "The array is fragmenting and the tracks show it — everything converging on whatever plate clusters remain.",
-      "The array is fragmenting at a rate I can project. I know where the floor level is from here.",
+      "I can project the rate from here. I know where the floor level is.",
       "I've watched this configuration before. The crash comes next, then the recovery. I know the sequence.",
     ],
     crash: [

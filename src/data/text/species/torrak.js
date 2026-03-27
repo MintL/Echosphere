@@ -89,7 +89,7 @@ OBSERVATION_POOLS['torrak'] = {
 
   modeled: {
     any: [
-      "{primaryFood} leads {species} by three cycles. I check {primaryFood} coverage before I check the track count.",
+      "I check {primaryFood} coverage before I check the track count. Three cycles between them, usually. Sometimes less.",
       "The crash dynamic is the one part I still haven't fully modeled. The population looks stable until it doesn't. Then three cycles.",
       "I can say what will happen. The when is the only variable. The window is narrow and the warning is thin.",
     ],

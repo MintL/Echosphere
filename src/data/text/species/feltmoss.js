@@ -75,7 +75,7 @@ OBSERVATION_POOLS['feltmoss'] = {
     crash: [
       "I hadn't been watching it closely. I was watching other things. The bare patches were already advancing.",
       "The {homeBiome} looks wrong. The light reaching the canopy floor is too direct — the coverage that blocked it is gone.",
-      "The bare patches were already advancing. I had stopped watching. I should have been watching.",
+      "I realize now I've been checking everything except this. It was the one thing I should have kept watching.",
     ],
   },
 

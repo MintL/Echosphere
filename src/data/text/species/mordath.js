@@ -102,7 +102,7 @@ OBSERVATION_POOLS['mordath'] = {
     low: [
       "Low overall count. Prey populations are expanding into ranges they hold during {species} absence.",
       "The ecosystem is in its {species}-absent configuration. I know what this looks like now. Everything spreads out.",
-      "Low {species} count is a predictive state. Prey populations will build. Secondary consumers will follow.",
+      "When {species} is low I read the prey range first. The expansion is the clearest signal that the pressure has lifted.",
     ],
     crash: [
       "No confirmed sighting in the longest gap I've recorded. I can't determine if this is crisis or extended movement.",
