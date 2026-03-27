@@ -12,7 +12,7 @@ export const PROJECT_DURATIONS = {
 const PROJECT_META = {
   speciesStudy_initial: {
     name:        'Initial Documentation',
-    description: 'Role identification and species naming.',
+    description: 'Ecological role identification and field classification.',
   },
   speciesStudy_behavioral: {
     name:        'Behavioral Study',
@@ -114,7 +114,7 @@ export function applyProjectCompletion(species, project) {
     let milestones = { ...sp.milestones }
 
     if (project.type === 'speciesStudy_initial') {
-      milestones = { ...milestones, named: true, roleIdentified: true }
+      milestones = { ...milestones, roleIdentified: true }
     } else if (project.type === 'speciesStudy_behavioral') {
       milestones = { ...milestones, behaviorMapped: true }
     } else if (project.type === 'speciesStudy_population') {

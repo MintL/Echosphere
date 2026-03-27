@@ -279,10 +279,15 @@ export function simulateCycle(state) {
     }
 
     const justSighted = disc.sightingCount === 0 && newCount >= 1
+    const justNamed   = !sp.milestones.named && newCount >= 3
 
     return {
       ...sp,
-      milestones: justSighted ? { ...sp.milestones, observed: true } : sp.milestones,
+      milestones: {
+        ...sp.milestones,
+        ...(justSighted && { observed: true }),
+        ...(justNamed   && { named: true }),
+      },
       discovery: {
         sightingScore:     newScore,
         sightingCount:     newCount,

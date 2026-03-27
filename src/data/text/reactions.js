@@ -1,34 +1,30 @@
-// ─── Researcher reaction tier selector + event text assembly ─────────────────
+// ─── Researcher reaction tier selector ───────────────────────────────────────
 //
-// Provides the researcher_reaction slot and assembles all four event text slots:
+// Provides the researcher_reaction slot in the four-slot text assembly:
 //   [observation_detail] [fact] [context?] [researcher_reaction]
 //
 // The reaction slot is the emotional register of the researcher. The same
 // population crash reads differently at cycle 3 vs cycle 60. The tier is
 // determined by how long the researcher has known this species.
-//
-// Usage:
-//   const text = assembleEventText(event, species, state)
-//   // caller should then: applyContextCooldown(species, context.type, state.cycle)
-//   // (assembleEventText is pure text output — side effects are the caller's job)
 
 import { resolveTokens, resolveBiomeTokens, getBiomeTier } from './tokens.js'
 
-// ─── Session dedup sets ───────────────────────────────────────────────────────
+// ─── Session dedup ────────────────────────────────────────────────────────────
 
 const _usedReactions = new Set()
-const _usedFacts     = new Set()
 
 // ─── Tier selector ────────────────────────────────────────────────────────────
 
-// Returns the researcher's emotional register based on cycles since role identification.
-// cyclesSinceRoleIdentified is tracked in engine.js phase 5 — increments while
-// roleIdentified && !behaviorMapped, then freezes. Null/missing → 0 → 'early'.
+// Returns the researcher's emotional register based on how well they know the species.
+// 'late' once behavioral study is complete — the researcher knows this species deeply.
+// 'mid' while between initial and behavioral study (10+ cycles since role identified).
+// 'early' otherwise — still learning.
 export function getReactionTier(species) {
+  const m = species.milestones
+  if (m.behaviorMapped || m.populationModeled) return 'late'
   const n = species.history?.cyclesSinceRoleIdentified ?? 0
-  if (n < 10)  return 'early'
-  if (n <= 30) return 'mid'
-  return 'late'
+  if (n >= 10) return 'mid'
+  return 'early'
 }
 
 // ─── Pool selectors ───────────────────────────────────────────────────────────
@@ -73,120 +69,6 @@ export function getReaction(event, species, state, reactionTemplates) {
   return resolveTokens(chosen, species, state)
 }
 
-// Select a fact from the flat pool for this event type.
-// Facts have no tier division — they are mechanical.
-export function getFact(event, species, state, factTemplates) {
-  const pool = factTemplates[event.type]
-  if (!pool?.length) return null
-
-  const prefix = `fact:${event.type}:${species.id}:`
-  let available = pool.filter(s => !_usedFacts.has(prefix + s))
-
-  if (available.length === 0) {
-    for (const k of _usedFacts) {
-      if (k.startsWith(prefix)) _usedFacts.delete(k)
-    }
-    available = [...pool]
-  }
-
-  const chosen = available[Math.floor(Math.random() * available.length)]
-  _usedFacts.add(prefix + chosen)
-  return resolveTokens(chosen, species, state)
-}
-
-// ─── Fact template pools ──────────────────────────────────────────────────────
-//
-// Flat per event type — no tier division. Facts are mechanical.
-// Tokens: same system as the rest of the writing ({species}, {primaryPredator}, etc.)
-
-export const FACT_TEMPLATES = {
-  populationCrisis: [
-    "{species} down {declinePct}%, {primaryPredator} pressure from above.",
-    "Numbers down {declinePct}% this cycle.",
-    "{primaryPredator} ranging further in. Down {declinePct}% this cycle.",
-    "Down {declinePct}% from last cycle.",
-    "Population down {declinePct}%. Lowest in {cyclesSinceLow} cycles.",
-  ],
-  populationSurge: [
-    "Up {declinePct}% from last cycle — new recorded peak.",
-    "{species} at their highest observed count.",
-    "Sharp increase this cycle. {primaryFood} appears to be supporting it.",
-    "New high. {primaryPredator} pressure has been light.",
-    "Numbers climbing — {declinePct}% above last cycle.",
-  ],
-  populationLow: [
-    "New recorded low. {cyclesSinceLow} cycles since the prior one.",
-    "{species} at their lowest count on record.",
-    "Lower than anything on record.",
-    "New floor. {cyclesSinceLow} cycles since the last.",
-    "Lower than before — {cyclesSinceLow} cycles since the prior low.",
-  ],
-  populationStable: [
-    "Population unchanged from last cycle.",
-    "{species} holding at the same count. No significant change.",
-    "Numbers stable — no movement this cycle.",
-    "Count within normal variation of last cycle.",
-    "Flat this cycle.",
-  ],
-  extinctionWarning: [
-    "Fewest I've recorded — population at critical minimum.",
-    "Near zero. Whatever was holding them stable is gone.",
-    "Down to the last few individuals.",
-    "Not much left to account for.",
-    "Fewer individuals than I can confidently track.",
-  ],
-  extinction: [
-    "{species} — none remaining.",
-    "Population zero. {species} is gone.",
-    "No remaining {species}. Extinction recorded this cycle.",
-    "Final entry for {species}. Population: zero.",
-    "{species} — zero. The record ends here.",
-  ],
-  firstBiomeEntry: [
-    "{species} recorded in {borderBiome} for the first time.",
-    "First confirmed {species} in {borderBiome} this cycle.",
-    "{species} in {borderBiome} — first crossing on record.",
-    "First documented {species} sighting in {borderBiome}.",
-    "{species} has reached {borderBiome}. First entry recorded.",
-  ],
-  firstSighting: [
-    "Something moving in {homeBiome}. No identification possible.",
-    "Unidentified organism — brief sighting, {homeBiome}.",
-    "First contact: unknown organism. No prior record.",
-    "Something in {homeBiome}. Gone before I could observe properly.",
-    "Sighting logged — unknown organism. Single observation.",
-  ],
-  subsequentSighting: [
-    "Second sighting. Same or similar organism.",
-    "Sighting {n} — pattern building. Something is here consistently.",
-    "Another observation. Hard to dismiss now.",
-    "Repeated sightings suggest something resident, not passing through.",
-    "Sighting {n} logged. Profile building slowly.",
-  ],
-  cascadeRisk: [
-    "{primaryFood} gone. {species} without their primary food source.",
-    "Primary food source failing. {species} will feel this within a few cycles.",
-    "{species} with no viable food source remaining — {primaryFood} depleted.",
-    "{primaryPredator} population has collapsed. Natural check on {species} removed.",
-    "Natural pressure on {species} removed — {primaryPredator} effectively absent.",
-    "The check on {species} is gone. {primaryPredator} no longer a factor.",
-  ],
-  biomeStress: [
-    "The {homeBiome} is quieter than it should be.",
-    "{homeBiome} feels thin this cycle — coverage and activity both down.",
-    "Something shifted in {homeBiome}. Can't place it yet.",
-    "Less happening in {homeBiome} than baseline. The gaps are wider.",
-    "The {homeBiome} is showing stress. Trying to identify where it started.",
-  ],
-  biomeRecovery: [
-    "{homeBiome} showing signs of recovery.",
-    "Activity returning to {homeBiome}. Something is improving.",
-    "Coverage up in {homeBiome} — first positive indicators this cycle.",
-    "{homeBiome} reading closer to baseline than last cycle.",
-    "The stress period in {homeBiome} may be ending.",
-  ],
-}
-
 // ─── Reaction template pools ──────────────────────────────────────────────────
 //
 // Tiered per event type. Three tiers reflect the researcher's growing familiarity:
@@ -225,7 +107,7 @@ export const REACTION_TEMPLATES = {
       // Researcher has known this species more than 30 cycles.
       // Voice: intimacy, earned history, emotional weight. May reference lastCrashCycle.
       "I know this pattern. I don't like it.",
-      "They've been here before — cycle {lastCrashCycle}. They came back. Different circumstances now.",
+      "I've watched them recover from this kind of drop. The circumstances aren't always the same.",
       "The {homeBiome} gets quieter before it gets worse. I've learned to notice the quiet.",
       "I've watched them survive worse. That doesn't make this easier to watch.",
       "{cyclesSinceLow} cycles since their last low. Whatever resilience they built up, they're drawing on it now.",
@@ -263,6 +145,12 @@ export const REACTION_TEMPLATES = {
       "The {homeBiome} has a ceiling. They've found it. What comes next is what concerns me.",
       "High numbers. High risk. I've stopped celebrating their peaks.",
       "They look healthy. I know better than to take comfort in that.",
+      "I've been here before with this species. A peak this sustained usually ends the same way.",
+      "The numbers are good. I've learned not to read that as good news.",
+      "The pressure will build from here. It always does.",
+      "The correction will come when it comes. I've marked the cycle.",
+      "I don't log peaks as milestones anymore. They're pressure accumulating.",
+      "This is where the cycle has arrived before. I know what follows.",
     ],
 
   },
@@ -355,7 +243,7 @@ export const REACTION_TEMPLATES = {
       // Voice: personal, restrained. Has history. May reference lastCrashCycle.
       // Weight comes from restraint, not heightened language.
       "I've been watching {species} for a long time. This is the lowest I've seen.",
-      "The last time numbers were this low was cycle {lastCrashCycle}. That ended one way.",
+      "I've seen numbers this low before. It didn't end well.",
       "I'm not sure when the decline started. That's the problem.",
       "I should have been checking this more carefully.",
     ],
@@ -455,6 +343,19 @@ export const REACTION_TEMPLATES = {
 
   },
 
+  speciesNamed: {
+
+    early: [
+      // Naming always fires before roleIdentified, so tier is always 'early'.
+      // Voice: the act of naming something you don't fully understand yet.
+      "Naming something you don't understand yet. That's the job.",
+      "I know the name now. I don't know much else.",
+      "The name gives me something to write. It doesn't give me understanding.",
+      "Named. That's the start of it.",
+    ],
+
+  },
+
   biomeRecovery: {
 
     early: [
@@ -488,30 +389,10 @@ export const REACTION_TEMPLATES = {
 
 }
 
-// ─── Biome fact + reaction selectors ─────────────────────────────────────────
+// ─── Biome reaction selector ──────────────────────────────────────────────────
 //
-// Parallel to getFact / getReaction but for biome events.
+// Parallel to getReaction but for biome events.
 // Tier is derived from elapsed cycles rather than species familiarity.
-// Token resolution uses resolveBiomeTokens (no species context available).
-
-export function getBiomeFact(event, biome, factTemplates) {
-  const pool = factTemplates[event.type]
-  if (!pool?.length) return null
-
-  const prefix  = `fact:${event.type}:${biome.id}:`
-  let available = pool.filter(s => !_usedFacts.has(prefix + s))
-
-  if (available.length === 0) {
-    for (const k of _usedFacts) {
-      if (k.startsWith(prefix)) _usedFacts.delete(k)
-    }
-    available = [...pool]
-  }
-
-  const chosen = available[Math.floor(Math.random() * available.length)]
-  _usedFacts.add(prefix + chosen)
-  return resolveBiomeTokens(chosen, biome)
-}
 
 export function getBiomeReaction(event, biome, state, reactionTemplates) {
   const byType = reactionTemplates[event.type]

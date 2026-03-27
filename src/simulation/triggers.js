@@ -24,9 +24,10 @@ const EVENT_TYPES = {
   SUBPOPULATION_FAILED:     'subpopulationFailed',
   SPECIATION_CANDIDATE:     'speciationCandidate',
   NICHE_OPENED:             'nicheOpened',
-  FIRST_SIGHTING:     'firstSighting',
+  FIRST_SIGHTING:      'firstSighting',
   SUBSEQUENT_SIGHTING: 'subsequentSighting',
-  STUDY_SUGGESTED:    'studySuggested',
+  SPECIES_NAMED:       'speciesNamed',
+  STUDY_SUGGESTED:     'studySuggested',
   STUDY_COMPLETED:    'studyCompleted',
   RESEARCH_STARTED:   'researchStarted',
 }
@@ -425,8 +426,18 @@ export function checkDiscovery(prevState, nextState) {
       })
     }
 
-    // studySuggested: sightingCount just reached 3, species not yet formally named
-    if (prevDisc.sightingCount < 3 && nextDisc.sightingCount >= 3 && !sp.milestones.named) {
+    // speciesNamed: automatic at sightingCount=3 — researcher coins the name informally
+    if (prevDisc.sightingCount < 3 && nextDisc.sightingCount >= 3 && sp.milestones.named) {
+      events.push({
+        type:      EVENT_TYPES.SPECIES_NAMED,
+        cycle,
+        speciesId: sp.id,
+        data: { name: sp.name },
+      })
+    }
+
+    // studySuggested: sightingCount just reached 3, named but role not yet identified
+    if (prevDisc.sightingCount < 3 && nextDisc.sightingCount >= 3 && sp.milestones.named && !sp.milestones.roleIdentified) {
       events.push({
         type:      EVENT_TYPES.STUDY_SUGGESTED,
         cycle,

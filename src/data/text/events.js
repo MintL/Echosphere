@@ -12,7 +12,8 @@
 import { spName } from '../../utils/species.js'
 import { getObservationDetail, getBiomeObservationDetail } from './tokens.js'
 import { selectContext, resolveContextTokens, CONTEXT_TEMPLATES } from './context.js'
-import { getReaction, getFact, getBiomeFact, getBiomeReaction, REACTION_TEMPLATES, FACT_TEMPLATES } from './reactions.js'
+import { getReaction, getBiomeReaction, REACTION_TEMPLATES } from './reactions.js'
+import { getFact, getBiomeFact, FACT_TEMPLATES } from './facts.js'
 
 // Side-effect imports: each file registers itself into OBSERVATION_POOLS on load.
 import './species/feltmoss.js'
@@ -63,6 +64,10 @@ function assembleBiomeEventText(event, state) {
 // Assembles observation_detail + fact + context + reaction into a paragraph.
 // Pure text — does NOT apply context cooldown (caller's responsibility).
 function assembleEventText(event, species, state) {
+  if (event.speciesId !== species.id) {
+    console.warn('[assembleEventText] speciesId mismatch', { eventType: event.type, eventSpeciesId: event.speciesId, resolvedSpeciesId: species.id, cycle: event.cycle })
+  }
+
   const context     = selectContext(event, species, state)
   const contextText = context
     ? resolveContextTokens(pickContextTemplate(context), context)
@@ -90,6 +95,7 @@ const VOICED_TYPES = new Set([
   'extinctionWarning',
   'firstBiomeEntry',
   'cascadeRisk',
+  'speciesNamed',
   'firstSighting',
   'subsequentSighting',
   'biomeStress',
@@ -143,9 +149,18 @@ function resolveSegments(template, gameState) {
 const RENDERERS = {
 
   extinction(ev) {
+    const sp   = `[sp:${ev.speciesId}]`
+    const peak = Math.round(ev.data.peakPopulation)
+    const variants = [
+      `${sp} — no individuals recorded this cycle. Peak count was ${peak}. The record ends here.`,
+      `${sp} — gone. Population zero. They reached ${peak} at their highest.`,
+      `${sp} — none remaining. Peak of ${peak}. Extinction recorded this cycle.`,
+      `${sp} — zero. The count has held at zero this cycle. I don't expect it to change.`,
+      `${sp} — population collapsed to zero. Final logged peak was ${peak}.`,
+    ]
     return {
       type: 'crisis',
-      template: `[sp:${ev.speciesId}] — no individuals recorded this cycle. Peak population was ${Math.round(ev.data.peakPopulation)}. The species appears to have collapsed entirely.`,
+      template: variants[ev.cycle % variants.length],
     }
   },
 
@@ -272,30 +287,58 @@ const RENDERERS = {
     }
   },
 
+  speciesNamed(ev) {
+    const sp = `[sp:${ev.speciesId}]`
+    const variants = [
+      `I've been calling it ${sp}. The name stuck.`,
+      `${sp} — the name came from the first clear look. I've used it in my notes since.`,
+      `I started writing ${sp} in the margins a few cycles ago. It fits.`,
+      `The name ${sp} came from something about the movement. I've kept it.`,
+      `${sp} — I needed something to write. Now I can't think of it as anything else.`,
+    ]
+    return { type: 'observation', template: variants[ev.cycle % variants.length] }
+  },
+
   studySuggested(ev) {
+    const sp = `[sp:${ev.speciesId}]`
+    const variants = [
+      `${sp} — enough sightings to justify a formal study. Added to research suggestions.`,
+      `Formal study suggested for ${sp}. Added to the queue.`,
+      `${sp} — sighting record warrants Initial Documentation. Added to suggestions.`,
+      `Adding ${sp} to study suggestions. The record is there to support it.`,
+    ]
     return {
       type: 'observation',
-      template: `Unknown organism — observed enough times to justify a formal study. Added to research suggestions.`,
+      template: variants[ev.cycle % variants.length],
     }
   },
 
   studyCompleted(ev) {
     const { data } = ev
+    const sp = `[sp:${ev.speciesId}]`
     if (data.tier === 'speciesStudy_initial') {
-      return {
-        type: 'observation',
-        template: `Initial study on [sp:${ev.speciesId}] complete. Species formally designated. Role in the ecosystem confirmed.`,
-      }
+      const variants = [
+        `Initial study on ${sp} complete. Species formally designated. Role in the ecosystem confirmed.`,
+        `Baseline documentation on ${sp} complete. Formally named and classified.`,
+        `Completed initial study on ${sp}. Role in the ecosystem mapped.`,
+        `${sp} study complete. Named and added to the formal species record.`,
+        `Documentation wrapped on ${sp}. Role confirmed. I know what this species is now.`,
+      ]
+      return { type: 'observation', template: variants[ev.cycle % variants.length] }
     }
     if (data.tier === 'speciesStudy_behavioral') {
-      return {
-        type: 'observation',
-        template: `Behavioral study on [sp:${ev.speciesId}] complete. Movement patterns and ecological interactions documented.`,
-      }
+      const variants = [
+        `Behavioral study on ${sp} complete. Movement patterns and ecological interactions documented.`,
+        `Behavioral documentation on ${sp} complete. Activity patterns mapped over the study period.`,
+        `${sp} behavior study wrapped. The movement data fills in what I'd been guessing at.`,
+        `Completed behavioral study on ${sp}. Interaction patterns documented.`,
+        `${sp} behavioral study complete. I understand their patterns better than I did going in.`,
+      ]
+      return { type: 'observation', template: variants[ev.cycle % variants.length] }
     }
     return {
       type: 'observation',
-      template: `Research project on [sp:${ev.speciesId}] complete.`,
+      template: `Research project on ${sp} complete.`,
     }
   },
 

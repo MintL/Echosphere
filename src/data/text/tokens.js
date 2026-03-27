@@ -80,9 +80,15 @@ export function resolveTokens(template, species, state) {
     ? (predator.milestones.roleIdentified ? predator.name : 'predation')
     : 'predation'
 
+  // {primaryFood} is used in abstract/fact contexts ("food source supporting growth")
+  // {prey} is used as a subject noun in observation strings ("the prey scattered")
   const foodText = food
-    ? (food.milestones.roleIdentified ? food.name : 'food availability')
-    : 'food availability'
+    ? (food.milestones.roleIdentified ? food.name : 'their food source')
+    : 'their food source'
+
+  const preyText = food
+    ? (food.milestones.roleIdentified ? food.name : 'prey')
+    : 'prey'
 
   return template
     .replace(/{species}/g,           species.name)
@@ -90,7 +96,7 @@ export function resolveTokens(template, species, state) {
     .replace(/{borderBiome}/g,       species.borderBiome ? biomeName(species.borderBiome) : homeName)
     .replace(/{primaryPredator}/g,   predatorText)
     .replace(/{primaryFood}/g,       foodText)
-    .replace(/{prey}/g,              foodText)
+    .replace(/{prey}/g,              preyText)
     .replace(/{declinePct}/g,        Math.abs(getPopulationChangePct(species)))
     .replace(/{lastCrashCycle}/g,    species.history.lastCrashCycle ?? '?')
     .replace(/{cyclesSinceLow}/g,    getCyclesSinceLow(species, state))
