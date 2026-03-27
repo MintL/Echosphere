@@ -90,6 +90,7 @@ export function resolveTokens(template, species, state) {
     .replace(/{borderBiome}/g,       species.borderBiome ? biomeName(species.borderBiome) : homeName)
     .replace(/{primaryPredator}/g,   predatorText)
     .replace(/{primaryFood}/g,       foodText)
+    .replace(/{prey}/g,              foodText)
     .replace(/{declinePct}/g,        Math.abs(getPopulationChangePct(species)))
     .replace(/{lastCrashCycle}/g,    species.history.lastCrashCycle ?? '?')
     .replace(/{cyclesSinceLow}/g,    getCyclesSinceLow(species, state))
@@ -112,6 +113,7 @@ export function getKnowledgeTier(species) {
 // ─── Observation detail pool ──────────────────────────────────────────────────
 
 // Registry: speciesId → { sighted, known, understood, modeled }
+// Each tier: { any: [], high?: [], low?: [], crash?: [] }
 // Species pool files register themselves here on import.
 export const OBSERVATION_POOLS = {}
 
@@ -119,25 +121,42 @@ export const OBSERVATION_POOLS = {}
 // Keys: "speciesId:tier:sentence"
 const _usedObservations = new Set()
 
-// Select a tier-appropriate observation detail for a species.
-// Resolves tokens before returning. Returns null if no pool is registered,
-// no sentences are available, or the species is undiscovered.
+// Map species population to a state bucket relative to its baseline.
+// Thresholds mirror the event trigger system (triggers.js).
+function getPopulationState(species) {
+  const baseline = species.history?.baseline
+  if (!baseline || baseline <= 0) return 'any'
+  const ratio = species.population / baseline
+  if (ratio < 0.15) return 'crash'
+  if (ratio < 0.5)  return 'low'
+  if (ratio > 1.5)  return 'high'
+  return 'any'
+}
+
+// Select a tier-and-population-state-appropriate observation for a species.
+// Merges the population-state bucket with 'any', then picks with deduplication.
+// Resolves tokens before returning. Returns null if nothing is available.
 export function getObservationDetail(species, state) {
   const tier = getKnowledgeTier(species)
   if (!tier) return null
 
-  const pool = OBSERVATION_POOLS[species.id]?.[tier]
-  if (!pool?.length) return null
+  const tierPool = OBSERVATION_POOLS[species.id]?.[tier]
+  if (!tierPool) return null
 
-  const prefix    = `${species.id}:${tier}:`
-  let available   = pool.filter(s => !_usedObservations.has(prefix + s))
+  const popState    = getPopulationState(species)
+  const stateSlot   = popState !== 'any' ? (tierPool[popState] ?? []) : []
+  const combined    = [...(tierPool.any ?? []), ...stateSlot]
+  if (combined.length === 0) return null
 
-  // Soft reset: if pool exhausted clear just this species+tier and retry
+  const prefix  = `${species.id}:${tier}:`
+  let available = combined.filter(s => !_usedObservations.has(prefix + s))
+
+  // Soft reset: if pool exhausted, clear just this species+tier and retry
   if (available.length === 0) {
     for (const key of _usedObservations) {
       if (key.startsWith(prefix)) _usedObservations.delete(key)
     }
-    available = [...pool]
+    available = [...combined]
   }
 
   const chosen = available[Math.floor(Math.random() * available.length)]
