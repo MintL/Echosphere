@@ -223,6 +223,7 @@ export function simulateCycle(state) {
       history: {
         ...sp.history,
         previousPopulation:    prev,
+        recentPopulations:     [...(sp.history.recentPopulations ?? []).slice(-7), prev],
         peakPopulation:        Math.max(sp.history.peakPopulation, next),
         lowestPopulation:      next > 0
           ? Math.min(sp.history.lowestPopulation, next)

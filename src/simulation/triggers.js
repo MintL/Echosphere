@@ -214,16 +214,22 @@ export function checkThresholds(prevState, nextState) {
     }
 
     // Population surge (requires: known)
+    // Compares against population 8 cycles ago so short-term noise doesn't
+    // dominate — the species needs to be genuinely higher than it was recently.
+    const pop8     = sp.history.recentPopulations?.[0]
+    const prevPop8 = prev.history.recentPopulations?.[0]
     if (
       canFire('populationSurge', sp) &&
-      sp.population > prev.history.peakPopulation &&
-      sp.population > sp.history.baseline * 1.2
+      pop8 != null &&
+      sp.population > pop8 * 1.10 &&
+      sp.population > sp.history.baseline * 1.2 &&
+      (prevPop8 == null || prev.population <= prevPop8 * 1.10)
     ) {
       events.push({
         type:      EVENT_TYPES.POPULATION_SURGE,
         cycle,
         speciesId: sp.id,
-        data: { name: sp.name, population: sp.population, previousPeak: sp.history.peakPopulation },
+        data: { name: sp.name, population: sp.population, pop8: Math.round(pop8) },
       })
     }
 

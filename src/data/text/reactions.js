@@ -244,7 +244,7 @@ export const REACTION_TEMPLATES = {
       // Weight comes from restraint, not heightened language.
       "I've been watching {species} for a long time. This is the lowest I've seen.",
       "I've seen numbers this low before. It didn't end well.",
-      "I'm not sure when the decline started. That's the problem.",
+      "The decline was gradual enough that I stopped reading it as a decline. That's the problem.",
       "I should have been checking this more carefully.",
     ],
 

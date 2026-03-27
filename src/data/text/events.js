@@ -181,7 +181,7 @@ const RENDERERS = {
   populationSurge(ev) {
     return {
       type: 'observation',
-      template: `[sp:${ev.speciesId}] at a new peak — ${Math.round(ev.data.population)} individuals, surpassing the previous high of ${Math.round(ev.data.previousPeak)}. Conditions appear favorable.`,
+      template: `[sp:${ev.speciesId}] up to ${Math.round(ev.data.population)} individuals — notably higher than 8 cycles ago (${ev.data.pop8}). Conditions appear favorable.`,
     }
   },
 

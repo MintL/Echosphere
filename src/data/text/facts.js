@@ -144,9 +144,9 @@ export const FACT_TEMPLATES = {
     "{primaryFood} gone. {species} without their primary food source.",
     "Primary food source failing. {species} will feel this within a few cycles.",
     "{species} with no viable food source remaining — {primaryFood} depleted.",
-    "{primaryPredator} population has collapsed. Natural check on {species} removed.",
-    "Natural pressure on {species} removed — {primaryPredator} effectively absent.",
-    "The check on {species} is gone. {primaryPredator} no longer a factor.",
+    "The population check on {species} is gone. Nothing is replacing it.",
+    "Natural pressure on {species} removed. No replacement pressure in place.",
+    "The check on {species} has collapsed. The balance has shifted.",
   ],
   biomeStress: [
     "The {homeBiome} is quieter than it should be.",
