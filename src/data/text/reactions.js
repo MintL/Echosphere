@@ -12,21 +12,7 @@
 //   // caller should then: applyContextCooldown(species, context.type, state.cycle)
 //   // (assembleEventText is pure text output — side effects are the caller's job)
 
-import { getObservationDetail, resolveTokens } from './tokens.js'
-import { selectContext, resolveContextTokens, CONTEXT_TEMPLATES } from './context.js'
-
-// Side-effect imports: each file registers itself into OBSERVATION_POOLS on load.
-import './species/feltmoss.js'
-import './species/nightroot.js'
-import './species/scaleweed.js'
-import './species/vellin.js'
-import './species/woldren.js'
-import './species/brack.js'
-import './species/torrak.js'
-import './species/keth.js'
-import './species/skethran.js'
-import './species/mordath.js'
-import './species/grubmere.js'
+import { resolveTokens } from './tokens.js'
 
 // ─── Session dedup sets ───────────────────────────────────────────────────────
 
@@ -106,39 +92,6 @@ export function getFact(event, species, state, factTemplates) {
   const chosen = available[Math.floor(Math.random() * available.length)]
   _usedFacts.add(prefix + chosen)
   return resolveTokens(chosen, species, state)
-}
-
-// ─── Context template picker (private) ───────────────────────────────────────
-
-function pickContextTemplate(context) {
-  if (!context) return null
-  // Try event-type-specific pool first, fall back to generic
-  const specificKey = context.eventType ? `${context.type}_${context.eventType}` : null
-  const pool = (specificKey && CONTEXT_TEMPLATES[specificKey]?.length)
-    ? CONTEXT_TEMPLATES[specificKey]
-    : CONTEXT_TEMPLATES[context.type]
-  if (!pool?.length) return null
-  return pool[Math.floor(Math.random() * pool.length)]
-}
-
-// ─── Event text assembly ──────────────────────────────────────────────────────
-
-// Assembles all four slots into a single researcher-voice paragraph.
-// Pure text output — does NOT apply context cooldown (caller's responsibility).
-export function assembleEventText(event, species, state) {
-  const context     = selectContext(event, species, state)
-  const contextText = context
-    ? resolveContextTokens(pickContextTemplate(context), context)
-    : null
-
-  const parts = [
-    getObservationDetail(species, state),
-    getFact(event, species, state, FACT_TEMPLATES),
-    contextText,
-    getReaction(event, species, state, REACTION_TEMPLATES),
-  ].filter(Boolean)
-
-  return parts.length > 0 ? parts.join(' ') : null
 }
 
 // ─── Fact template pools ──────────────────────────────────────────────────────

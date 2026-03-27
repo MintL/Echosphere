@@ -10,7 +10,52 @@
 // and resolved against current game state at render time.
 
 import { spName } from '../../utils/species.js'
-import { assembleEventText } from './reactions.js'
+import { getObservationDetail } from './tokens.js'
+import { selectContext, resolveContextTokens, CONTEXT_TEMPLATES } from './context.js'
+import { getReaction, getFact, REACTION_TEMPLATES, FACT_TEMPLATES } from './reactions.js'
+
+// Side-effect imports: each file registers itself into OBSERVATION_POOLS on load.
+import './species/feltmoss.js'
+import './species/nightroot.js'
+import './species/scaleweed.js'
+import './species/vellin.js'
+import './species/woldren.js'
+import './species/brack.js'
+import './species/torrak.js'
+import './species/keth.js'
+import './species/skethran.js'
+import './species/mordath.js'
+import './species/grubmere.js'
+
+// ─── Event text assembly ──────────────────────────────────────────────────────
+
+function pickContextTemplate(context) {
+  if (!context) return null
+  const specificKey = context.eventType ? `${context.type}_${context.eventType}` : null
+  const pool = (specificKey && CONTEXT_TEMPLATES[specificKey]?.length)
+    ? CONTEXT_TEMPLATES[specificKey]
+    : CONTEXT_TEMPLATES[context.type]
+  if (!pool?.length) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// Assembles observation_detail + fact + context + reaction into a paragraph.
+// Pure text — does NOT apply context cooldown (caller's responsibility).
+function assembleEventText(event, species, state) {
+  const context     = selectContext(event, species, state)
+  const contextText = context
+    ? resolveContextTokens(pickContextTemplate(context), context)
+    : null
+
+  const parts = [
+    getObservationDetail(species, state),
+    getFact(event, species, state, FACT_TEMPLATES),
+    contextText,
+    getReaction(event, species, state, REACTION_TEMPLATES),
+  ].filter(Boolean)
+
+  return parts.length > 0 ? parts.join(' ') : null
+}
 
 // Event types that use the full researcher-voice assembly instead of
 // the mechanical template. Falls back to mechanical if assembly returns null.
