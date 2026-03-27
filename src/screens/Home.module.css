@@ -184,14 +184,39 @@
   flex-direction: column;
 }
 
+@keyframes revealEntry {
+  from { translate: 0 20px; }
+  to   { translate: 0 0; }
+}
+
 /* ── Single entry ── */
 .entry {
   padding: 22px 0;
   border-bottom: 1px solid var(--rule);
+  /* Fade in on DOM insertion (@starting-style fires on first render too) */
+  transition: opacity 0.5s ease-out, translate 0.5s ease-out;
+}
+
+@starting-style {
+  .entry {
+    opacity: 0;
+    translate: 0 10px;
+  }
 }
 
 .entry:last-child {
   border-bottom: none;
+}
+
+/* Scroll-driven translate reveal (opacity handled separately above) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .entry {
+      animation: revealEntry linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
 }
 
 .entryMeta {
@@ -342,10 +367,9 @@
   background: var(--ink);
   color: var(--bg);
   font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  padding: 7px 16px;
+  font-size: 18px;
+  font-weight: 400;
+  padding: 10px 20px;
   border: none;
   border-radius: 20px;
   cursor: pointer;

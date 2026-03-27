@@ -110,6 +110,7 @@ export default function Home() {
   const atBottomRef    = useRef(true)
   const prevCountRef   = useRef(0)
   const initializedRef = useRef(false)
+  const gameStateRef   = useRef(null)  // tracks latest gameState for unmount save
 
   const [gameState,        setGameState]        = useState(null)
   const [loading,          setLoading]          = useState(true)
@@ -118,6 +119,16 @@ export default function Home() {
   const [visitMarkerCycle, setVisitMarkerCycle] = useState(0)
   const [scrolledUp,       setScrolledUp]       = useState(false)
   const [unseenCount,      setUnseenCount]      = useState(0)
+
+  // On unmount (navigate away): advance the marker to the current cycle so
+  // that on return, only events that fired while away appear as new.
+  useEffect(() => {
+    return () => {
+      if (gameStateRef.current) {
+        saveSession(onContinue(gameStateRef.current))
+      }
+    }
+  }, [])
 
   // Load session
   useEffect(() => {
@@ -205,8 +216,9 @@ export default function Home() {
 
   // ── Derived render values ──
   const awayHours  = Math.round(awayMs / (1000 * 60 * 60))
+  gameStateRef.current = gameState  // keep ref current for unmount save
   const oldEntries = entries.filter(e => e.cycle <= visitMarkerCycle)
-  const newEntries = entries.filter(e => e.cycle >  visitMarkerCycle)
+  const newEntries = entries.filter(e => e.cycle > visitMarkerCycle)
   const hasMarker  = newEntries.length > 0 && visitMarkerCycle > 0
 
   function handleRespond(globalIdx) {
@@ -318,10 +330,10 @@ export default function Home() {
         )}
       </div>
 
-      {/* ── Unseen pill ── */}
-      {scrolledUp && unseenCount > 0 && (
+      {/* ── Scroll-to-bottom pill ── */}
+      {scrolledUp && (
         <button className={styles.unseenPill} onClick={scrollToBottom}>
-          {unseenCount} new {unseenCount === 1 ? 'entry' : 'entries'} ↓
+          ↓
         </button>
       )}
 
