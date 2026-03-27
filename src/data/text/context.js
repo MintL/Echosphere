@@ -216,6 +216,29 @@ export const CONTEXT_TEMPLATES = {
     "Saw this in cycle {priorCycle}. The correction came shortly after.",
     "They peaked at similar levels in cycle {priorCycle}.",
   ],
+  priorSameEvent_populationCrisis: [
+    "Cycle {priorCycle} had a similar run. It took a while to find the floor.",
+    "Numbers this low before — cycle {priorCycle}. The turn was slow.",
+    "Seen this rate of decline once before. Cycle {priorCycle}.",
+    "Cycle {priorCycle} followed the same shape. Recovery came eventually.",
+  ],
+  priorSameEvent_populationLow: [
+    "Population this low in cycle {priorCycle} too. They recovered.",
+    "Saw a new low in cycle {priorCycle}. This one is lower.",
+    "Same floor as cycle {priorCycle}, roughly.",
+    "They've been here before — cycle {priorCycle}.",
+  ],
+  priorSameEvent_populationStable: [
+    "Held flat like this around cycle {priorCycle}.",
+    "A similar plateau in cycle {priorCycle}. Not sure what followed.",
+    "They went quiet like this in cycle {priorCycle}.",
+  ],
+  priorSameEvent_extinctionWarning: [
+    "Warning-level numbers in cycle {priorCycle} too. They came back.",
+    "Saw this same threshold in cycle {priorCycle}.",
+    "This low before, in cycle {priorCycle}. That time they recovered.",
+    "Cycle {priorCycle}, the same numbers. Different outcome possible this time.",
+  ],
   consecutivePattern: [
     "Third consecutive decline.",
     "{n} cycles of contraction now.",
@@ -225,6 +248,29 @@ export const CONTEXT_TEMPLATES = {
     "Third consecutive peak.",
     "{n} cycles of sustained growth.",
     "Climbing since cycle {startCycle}.",
+  ],
+  consecutivePattern_populationStable: [
+    "Same count every cycle since {startCycle}.",
+    "{n} cycles without a shift.",
+    "Nothing has changed since cycle {startCycle}.",
+    "Holding the same ground for {n} cycles now.",
+  ],
+  consecutivePattern_populationCrisis: [
+    "Down every cycle since {startCycle}. No floor yet.",
+    "{n} cycles without a recovery signal.",
+    "The decline has run uninterrupted since {startCycle}.",
+    "Every cycle since {startCycle} has been lower than the last.",
+  ],
+  consecutivePattern_populationLow: [
+    "{n} consecutive cycles at or near their floor.",
+    "Declining every cycle since {startCycle}.",
+    "{n} cycles in decline. The floor keeps moving.",
+    "Dropping every cycle since {startCycle}.",
+  ],
+  consecutivePattern_extinctionWarning: [
+    "Critical numbers for {n} consecutive cycles.",
+    "Warning-level since cycle {startCycle} — not recovering.",
+    "{n} cycles at extinction threshold.",
   ],
   nearExtinctionRecovery: [
     "They were at {lowestPop} individuals in cycle {lowestCycle}. Came back from that.",

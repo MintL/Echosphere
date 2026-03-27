@@ -118,7 +118,7 @@ export function getKnowledgeTier(species) {
 export const OBSERVATION_POOLS = {}
 
 // Session-scoped deduplication. Resets on page refresh (module re-evaluation).
-// Keys: "speciesId:tier:sentence"
+// Keys: "speciesId:tier:sentence" or "biome:biomeId:tier:sentence"
 const _usedObservations = new Set()
 
 // Map species population to a state bucket relative to its baseline.
@@ -162,4 +162,63 @@ export function getObservationDetail(species, state) {
   const chosen = available[Math.floor(Math.random() * available.length)]
   _usedObservations.add(prefix + chosen)
   return resolveTokens(chosen, species, state)
+}
+
+// ─── Biome observation pool ───────────────────────────────────────────────────
+
+// Registry: biomeId → { early, mid, late }
+// Each tier: { any: [], stressed?: [], recovering?: [] }
+// Biome pool files register themselves here on import.
+export const BIOME_OBSERVATION_POOLS = {}
+
+// Returns the researcher's familiarity tier with the ecosystem based on
+// total cycles elapsed. Biomes are known from the start — tier reflects
+// depth of observation over time, not discovery.
+export function getBiomeTier(state) {
+  const cycle = state.cycle ?? 0
+  if (cycle < 20) return 'early'
+  if (cycle < 60) return 'mid'
+  return 'late'
+}
+
+// Map biome health value to a state bucket.
+// Mirrors the biomeStress/biomeRecovery trigger thresholds in triggers.js.
+function getBiomeHealthState(biome) {
+  if (biome.health < 0.3) return 'stressed'
+  if (biome.health < 0.6) return 'recovering'
+  return 'any'
+}
+
+// Resolve biome-specific tokens in a template string.
+// Biome templates only use {homeBiome} — standard species tokens do not apply.
+export function resolveBiomeTokens(template, biome) {
+  return template.replace(/{homeBiome}/g, biome.name)
+}
+
+// Select a tier-and-health-state-appropriate observation for a biome.
+// Merges the health-state bucket with 'any', then picks with deduplication.
+// Returns null if no pool is registered for this biome.
+export function getBiomeObservationDetail(biome, state) {
+  const tier     = getBiomeTier(state)
+  const tierPool = BIOME_OBSERVATION_POOLS[biome.id]?.[tier]
+  if (!tierPool) return null
+
+  const healthState = getBiomeHealthState(biome)
+  const stateSlot   = healthState !== 'any' ? (tierPool[healthState] ?? []) : []
+  const combined    = [...(tierPool.any ?? []), ...stateSlot]
+  if (combined.length === 0) return null
+
+  const prefix  = `biome:${biome.id}:${tier}:`
+  let available = combined.filter(s => !_usedObservations.has(prefix + s))
+
+  if (available.length === 0) {
+    for (const key of _usedObservations) {
+      if (key.startsWith(prefix)) _usedObservations.delete(key)
+    }
+    available = [...combined]
+  }
+
+  const chosen = available[Math.floor(Math.random() * available.length)]
+  _usedObservations.add(prefix + chosen)
+  return resolveBiomeTokens(chosen, biome)
 }

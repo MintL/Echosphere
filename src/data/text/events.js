@@ -10,9 +10,9 @@
 // and resolved against current game state at render time.
 
 import { spName } from '../../utils/species.js'
-import { getObservationDetail } from './tokens.js'
+import { getObservationDetail, getBiomeObservationDetail } from './tokens.js'
 import { selectContext, resolveContextTokens, CONTEXT_TEMPLATES } from './context.js'
-import { getReaction, getFact, REACTION_TEMPLATES, FACT_TEMPLATES } from './reactions.js'
+import { getReaction, getFact, getBiomeFact, getBiomeReaction, REACTION_TEMPLATES, FACT_TEMPLATES } from './reactions.js'
 
 // Side-effect imports: each file registers itself into OBSERVATION_POOLS on load.
 import './species/feltmoss.js'
@@ -27,6 +27,11 @@ import './species/skethran.js'
 import './species/mordath.js'
 import './species/grubmere.js'
 
+// Side-effect imports: each file registers itself into BIOME_OBSERVATION_POOLS on load.
+import './biomes/highgrowth.js'
+import './biomes/understory.js'
+import './biomes/scorchflats.js'
+
 // ─── Event text assembly ──────────────────────────────────────────────────────
 
 function pickContextTemplate(context) {
@@ -37,6 +42,22 @@ function pickContextTemplate(context) {
     : CONTEXT_TEMPLATES[context.type]
   if (!pool?.length) return null
   return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// Assembles observation_detail + fact + reaction for biome events.
+// No context slot — biomes have no history tracking in game state.
+// Pure text — returns null if no content is available.
+function assembleBiomeEventText(event, state) {
+  const biome = state.biomes?.[event.biomeId]
+  if (!biome) return null
+
+  const parts = [
+    getBiomeObservationDetail(biome, state),
+    getBiomeFact(event, biome, FACT_TEMPLATES),
+    getBiomeReaction(event, biome, state, REACTION_TEMPLATES),
+  ].filter(Boolean)
+
+  return parts.length > 0 ? parts.join(' ') : null
 }
 
 // Assembles observation_detail + fact + context + reaction into a paragraph.
@@ -59,7 +80,21 @@ function assembleEventText(event, species, state) {
 
 // Event types that use the full researcher-voice assembly instead of
 // the mechanical template. Falls back to mechanical if assembly returns null.
-const VOICED_TYPES = new Set(['populationCrisis', 'populationSurge'])
+// Requirements: event must have a speciesId and at least a FACT_TEMPLATES pool.
+// Excluded: extinction (mechanical by spec), firstSighting/subsequentSighting/biomeStress/biomeRecovery (no speciesId).
+const VOICED_TYPES = new Set([
+  'populationCrisis',
+  'populationSurge',
+  'populationLow',
+  'populationStable',
+  'extinctionWarning',
+  'firstBiomeEntry',
+  'cascadeRisk',
+  'firstSighting',
+  'subsequentSighting',
+  'biomeStress',
+  'biomeRecovery',
+])
 
 const BIOME_NAMES = {
   highgrowth:  'Highgrowth',
@@ -282,17 +317,34 @@ export function eventToEntry(event, gameState) {
   if (!renderer) return null
 
   // For voiced event types, try the full researcher-voice assembly first.
-  if (VOICED_TYPES.has(event.type) && event.speciesId) {
-    const species = gameState?.species?.find(s => s.id === event.speciesId)
-    if (species) {
-      const voiced = assembleEventText(event, species, gameState)
+  if (VOICED_TYPES.has(event.type)) {
+    // Biome events — no speciesId, use biome assembly path.
+    if (event.biomeId && !event.speciesId) {
+      const voiced = assembleBiomeEventText(event, gameState)
       if (voiced) {
         return {
           cycle:      event.cycle,
           type:       renderer(event).type,
           segments:   [{ type: 'text', value: voiced }],
-          speciesIds: [event.speciesId],
-          biomeIds:   [],
+          speciesIds: [],
+          biomeIds:   [event.biomeId],
+        }
+      }
+    }
+
+    // Species events — standard assembly path.
+    if (event.speciesId) {
+      const species = gameState?.species?.find(s => s.id === event.speciesId)
+      if (species) {
+        const voiced = assembleEventText(event, species, gameState)
+        if (voiced) {
+          return {
+            cycle:      event.cycle,
+            type:       renderer(event).type,
+            segments:   [{ type: 'text', value: voiced }],
+            speciesIds: [event.speciesId],
+            biomeIds:   [],
+          }
         }
       }
     }
