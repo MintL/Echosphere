@@ -60,15 +60,15 @@ OBSERVATION_POOLS['nightroot'] = {
   understood: {
     any: [
       "The floor coverage functions as a health indicator. When it changes, something upstream has changed.",
-      "Nightroot and the browsing pressure are inversely related in practice. When grazers are high, the floor gets worked. I check both now.",
+      "The floor goes thin when the browsing picks up. I've watched it happen enough to check both at once now.",
       "The slowness of it makes it easy to stop watching. It changes at centimetre scale per cycle. That's easy to miss.",
       "The chemical signature in the {homeBiome} is Nightroot, mostly. When it changes subtly, I notice before I understand why.",
       "I think of it as geology now. Not ecology. It moves on a different clock.",
     ],
     high: [
-      "Coverage reaching the buttress bases. Grazers must be low — nothing is working the floor at the usual rate.",
-      "The {homeBiome} floor is brighter than its baseline. More surface area catching the low ambient light.",
-      "High coverage means the grazer population is down. I look at the secondary picture.",
+      "Coverage reaching the buttress bases. The {homeBiome} floor is unusually bright — nothing has been working this surface.",
+      "The glow-scatter is stronger than the baseline. More pale surface catching the low ambient light than usual.",
+      "High coverage and the {homeBiome} is quiet. Whatever usually keeps the browsing pressure up isn't here.",
     ],
     low: [
       "The floor is patchy in sections I've used as a reference baseline for cycles. Grazing pressure has increased.",
@@ -89,12 +89,12 @@ OBSERVATION_POOLS['nightroot'] = {
       "Nightroot floor and grazer population tell each other's story. I read them together now.",
     ],
     high: [
-      "High coverage at the buttress bases means grazers are low and not working the floor surface. I check the count next.",
+      "Coverage up the buttress bases again — above the usual floor level. The {homeBiome} is quiet and the floor is running ahead of the browsers.",
       "The {homeBiome} floor is as complete as I've seen it. This is the baseline functioning correctly.",
       "Continuous ivory coverage across all corridors. As expected. Nothing to log beyond the number.",
     ],
     low: [
-      "Low floor coverage means something is grazing heavily. I verify the grazer read.",
+      "The coverage has dropped in the main corridors. Something has been working the floor surface more than usual.",
       "The patchy sections have spread since last cycle. The floor margin is moving. Not dramatically. But moving.",
       "The glow-scatter in the affected corridors is down to a level where I've adjusted my navigation. The {homeBiome} feels smaller.",
     ],

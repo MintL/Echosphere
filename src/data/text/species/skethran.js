@@ -41,7 +41,7 @@ OBSERVATION_POOLS['skethran'] = {
 
   known: {
     any: [
-      "{species} concentrated in {homeBiome} today. The usual distribution when Vellin is available.",
+      "{species} concentrated in {homeBiome} today. Moving at ground level along the canopy floor routes.",
       "Observed a hunting sequence — half a cycle of patient following before any commitment. Methodical.",
       "Crossed into {borderBiome} during my afternoon survey. Didn't hesitate at the transition.",
       "Three individuals in the same {homeBiome} section without apparent competition. Range overlap, no tension.",
@@ -64,43 +64,43 @@ OBSERVATION_POOLS['skethran'] = {
   understood: {
     any: [
       "I've started reading {species} distribution before I check prey numbers. The distribution tells the story first.",
-      "Heavy {homeBiome} concentration means Vellin is under pressure or building fast. Heavy {borderBiome} concentration means Woldren is the active target.",
-      "The 8-cycle {borderBiome} lag versus the 1-cycle {homeBiome} lag — {species} responds to these pressures on very different timescales.",
+      "When {species} is concentrated in {homeBiome} I look at the Vellin numbers next. When it's in {borderBiome} I wait — whatever is happening there takes longer to show up.",
+      "I've noticed {species} working the {borderBiome} for cycles before anything changes in the numbers there. Patient in a way it isn't in the {homeBiome}.",
       "When {species} is absent from the Fringe, that's the signal. The Fringe is its natural position. Absence is data.",
       "The amber-to-dark shift is consistent across all individuals at the border. Not camouflage — more like the biome registering in the surface.",
     ],
     high: [
-      "{species} dense in {homeBiome}. Vellin is building or already elevated. The lag is 1 cycle — the response is almost simultaneous.",
+      "{species} dense in {homeBiome}, working the canopy floor in groups. Vellin must be up — I find out when I check.",
       "The {homeBiome} concentration is heavy enough that I don't need to count Vellin directly to know the state.",
       "Multiple individuals active in the same section without conflict. Vellin is abundant enough to remove the spacing pressure.",
     ],
     low: [
-      "Sparse in both biomes means both prey populations have contracted. I verify each separately.",
+      "Sparse in both biomes and ranging wide — I haven't picked up a hunting sequence all cycle.",
       "The {borderBiome} concentration has dropped. The 8-cycle lag makes this hard to read — what drove them there may have resolved cycles ago.",
       "Light in both biomes. I use {species} absence as a cross-biome signal and go check the numbers.",
     ],
     crash: [
       "Both prey populations must be near floor simultaneously. {species} is ranging wide and finding little.",
       "Absent from both biomes for two survey cycles. I take that seriously now.",
-      "The distribution tells me the system is in a trough. I verify with direct counts, but {species} told me first.",
+      "Ranging wide across both biomes and committing to nothing. The {homeBiome} and {borderBiome} are both running lean.",
     ],
   },
 
   modeled: {
     any: [
-      "I check {species} distribution before I run any prey count. It's the fastest read on the state of both biomes.",
-      "The 1-cycle {homeBiome} lag versus the 8-cycle {borderBiome} lag — I'm always reading two timescales from the same distribution map.",
+      "I find {species} first, note which biome it's working, then check the numbers. The distribution is usually ahead.",
+      "There are two versions of {species}: the one that responds within a cycle in {homeBiome}, and the one that takes eight in {borderBiome}. I watch both at once.",
       "I have more movement data on {species} than on almost anything else, because its movements encode information about every biome it touches.",
     ],
     high: [
-      "Dense in {homeBiome}. Vellin is at or approaching peak. One cycle to the pressure event.",
+      "Dense in {homeBiome}, multiple individuals working the same canopy floor section. The Vellin numbers are up — I know without checking.",
       "Heavy concentration at the Fringe — working both biomes simultaneously. Both prey populations are adequate.",
       "The {homeBiome} concentration confirms what the Vellin count will show. I log the distribution first, the count second.",
     ],
     low: [
       "Sparse and ranging wide. Both prey populations under pressure. The distribution is the fastest confirmation.",
       "Only Fringe sightings — the neutral position. Prey populations balanced in their scarcity.",
-      "Low {species} density is the leading indicator for a system in recovery. I watch for the distribution to shift back.",
+      "Sparse {species} means everything is quiet at once. I watch for when the {homeBiome} concentration starts to build again.",
     ],
     crash: [
       "Absent from both biomes in three consecutive surveys. Both prey populations are at floor.",

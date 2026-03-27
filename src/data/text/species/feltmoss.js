@@ -63,9 +63,9 @@ OBSERVATION_POOLS['feltmoss'] = {
       "I'm not certain it's one organism. At crash level the question starts to matter.",
     ],
     high: [
-      "Coverage this dense means the grazer numbers will follow upward within a cycle or two. I'm logging both.",
+      "Coverage this dense and the {homeBiome} sounds different — more activity moving through the mid-canopy. I'm logging both.",
       "The iridescent shimmer is stronger at high coverage — more surface area in synchrony.",
-      "Full {homeBiome} coverage. The food web has what it needs. I won't log this again unless something changes.",
+      "Full {homeBiome} coverage. The shimmer is running strong on every surface I can see. Nothing to log here until something breaks.",
     ],
     low: [
       "The bare patches are advancing faster than expected. Whatever is downstream of this will follow.",
@@ -75,13 +75,13 @@ OBSERVATION_POOLS['feltmoss'] = {
     crash: [
       "I hadn't been watching it closely. I was watching other things. The bare patches were already advancing.",
       "The {homeBiome} looks wrong. The light reaching the canopy floor is too direct — the coverage that blocked it is gone.",
-      "A crash here runs through everything downstream. I'm only now realizing how much I'd stopped treating this as a variable.",
+      "The bare patches were already advancing. I had stopped watching. I should have been watching.",
     ],
   },
 
   modeled: {
     any: [
-      "Coverage leads grazer population by two cycles. I check this before anything else now.",
+      "When the shimmer starts going patchy I stop and look at everything else before I keep walking.",
       "The bare-patch pattern is readable by stage — light scars first, then wider exposure, then cascade. I know the progression.",
       "The recovery after grazing is faster than I'd expect. Whatever the mechanism, it has redundancy built in.",
       "I've stopped being surprised by the oscillation. The {homeBiome} coverage rises and falls on its own rhythm. I track it.",
@@ -92,13 +92,13 @@ OBSERVATION_POOLS['feltmoss'] = {
       "High {homeBiome} coverage. This is the foundation of the current upswing. Watching for when it starts to thin.",
     ],
     low: [
-      "Low coverage means pressure on everything that feeds here. The numbers downstream will follow within cycles.",
+      "The bare patches have spread past my reference markers. The {homeBiome} is running thin in the mid-canopy now.",
       "The bare-patch advance has reached the sections I use as baselines. My comparison points are compromised.",
-      "Coverage at this level means the {homeBiome} is running a deficit. The recovery will come. Not yet.",
+      "The {homeBiome} looks different at this level. Less gold, more bare substrate showing through. The recovery will come. Not yet.",
     ],
     crash: [
       "The foundation has cracked. I've been logging this long enough to know the cascade that comes next.",
-      "Coverage below twenty percent. The food web built on this has nothing to run on.",
+      "Below twenty percent. The mid-canopy is mostly bare substrate now. I keep checking, hoping I've miscounted.",
       "It comes back. The recovery record is consistent. But the window between crash and recovery is the most dangerous period I track.",
     ],
   },

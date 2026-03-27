@@ -60,11 +60,11 @@ OBSERVATION_POOLS['scaleweed'] = {
 
   understood: {
     any: [
-      "The {homeBiome} runs entirely on this. A crash here puts pressure on both consumers simultaneously. I've seen it.",
+      "I've watched both armored feeders go thin in the same week. It starts here — always here.",
       "The crash-and-recovery pattern has been consistent — drops hard, comes back reliably. I've stopped treating the recovery as uncertain.",
       "Grazing pressure shows first at the array margins, then spreads inward. I track the margin condition as an early signal.",
       "The hexagonal geometry persists at all population levels. Even near crash, the plates are discrete, not degraded.",
-      "Every armored feeder on the {homeBiome} depends entirely on this. There is no secondary food source. That is the whole story.",
+      "There is nothing else to eat on the {homeBiome}. I think about that sometimes while I'm mapping the array.",
     ],
     high: [
       "Arrays extending into sections of the flat I've only seen occupied in the best conditions. The {homeBiome} is running well.",
@@ -78,25 +78,25 @@ OBSERVATION_POOLS['scaleweed'] = {
     ],
     crash: [
       "The flat looks like crust because it mostly is crust. I'm finding isolated plate clusters only.",
-      "Both consumers are under direct pressure from the same shortage at the same time.",
+      "The tracks on the flat look different at crash level — fewer, closer together, all pointing at the same remaining clusters.",
       "It has come back before. Every time. I'm logging the current floor and waiting for the turn.",
     ],
   },
 
   modeled: {
     any: [
-      "Coverage leads consumer health by two or three cycles. I check this first on every {homeBiome} survey.",
+      "The array margin tells me what's coming before the tracks change. I check it first on every {homeBiome} survey.",
       "The recovery is reliable — eight crashes and eight recoveries in my reference data. The faith is earned.",
       "Crash and recovery follow a consistent shape. I can read the stage from the margin pattern alone.",
       "I've stopped being surprised by the oscillation. The {homeBiome} floor cycles. I track it.",
     ],
     high: [
-      "High coverage. The {homeBiome} is at its best. The consumer numbers will follow, then cycle back.",
+      "High coverage. The flat looks as close to productive as the {homeBiome} gets. I know how this goes from here.",
       "Array tiling continuous across the standard survey area. The foundation is intact.",
       "The coverage is deeper into the flat than baseline. A surplus, logged against the reference record.",
     ],
     low: [
-      "Low coverage and consumer pressure aligning. The {homeBiome} is under stress from both sides.",
+      "The array is fragmenting and the tracks show it — everything converging on whatever plate clusters remain.",
       "The array is fragmenting at a rate I can project. I know where the floor level is from here.",
       "I've watched this configuration before. The crash comes next, then the recovery. I know the sequence.",
     ],

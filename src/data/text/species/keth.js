@@ -63,19 +63,19 @@ OBSERVATION_POOLS['keth'] = {
 
   understood: {
     any: [
-      "{species} is as dependent on {prey} as {prey} is endangered by {species}. The oscillation runs both ways.",
+      "I've watched the {species} crash because there was nothing left to hunt. It goes both ways — I know that now.",
       "The 1-cycle lag is close enough to simultaneous that I stopped treating them as separate signals.",
       "I've stopped reading {species} density as a threat to {prey}. I read it as a phase of the system.",
       "The eye-spots have never produced a hypothesis I can confirm. I've logged them in every sighting.",
       "When {species} is absent, the {prey} expand immediately. The mid-canopy reclaims routes it had abandoned.",
     ],
     high: [
-      "High {species} density means {prey} is at or past its peak. The {prey} crash follows within a cycle.",
-      "The upper canopy is at maximum predator density. {prey} compressed below. A familiar phase.",
+      "Dense overhead and the {prey} are compressed below — they already know what's coming before I log it.",
+      "The upper canopy has a particular held quality at this density. The mid-canopy is very still.",
       "I've watched this configuration resolve the same way repeatedly. High {species} density precedes a {prey} collapse.",
     ],
     low: [
-      "Low {species} density. The {prey} are recovering from a hard crash — not enough prey base yet to support more.",
+      "Sparse overhead, and the {prey} are starting to reclaim the upper canopy. Both recovering at the same time.",
       "The {prey} have returned to the upper canopy. The pressure that drove them down isn't there.",
       "{species} ranging wide and sparse. Both populations in the recovery phase. They will follow upward.",
     ],
@@ -88,12 +88,12 @@ OBSERVATION_POOLS['keth'] = {
 
   modeled: {
     any: [
-      "The relationship between {species} and {prey} is the most mechanically consistent thing I track. Peak, lag, crash, recovery.",
-      "I read {species} density as a leading indicator for {prey} state. Dense {species} means declining {prey}.",
+      "I've watched this run its full course more times than anything else I track. It always completes.",
+      "When I see the upper canopy heavy with {species} I don't check the {prey} number first — I already know where it is.",
       "The pale eye-spots are the one thing I cannot fit into the model. Every other behavior has a read. Not those.",
     ],
     high: [
-      "High {species} density. {prey} is at or past its peak. One cycle to the {prey} crash, then two to the {species} crash.",
+      "Dense overhead. The {prey} at the canopy floor. I've watched this configuration before — I know what follows.",
       "The pattern has held consistently enough that I write the prediction before checking the {prey} count.",
       "Dense overhead. The {prey} are at the canopy floor. Both populations near their respective peaks.",
     ],

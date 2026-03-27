@@ -46,7 +46,7 @@ OBSERVATION_POOLS['brack'] = {
       "The armoring handles everything this border throws at it. Only {primaryPredator} changes the calculation.",
       "Not fast. Not hurried. The sweep pattern is consistent across every observation I've made.",
       "Found a small group at the transitional crust. Four individuals, spaced evenly, all moving in the same direction.",
-      "The dual-producer dependency is the defining fact. {species} lives where both food sources are within reach.",
+      "They work both sides of the Fringe without apparent preference. Whatever the border has, {species} finds.",
       "At low food, the groups dissolve and individuals range further. Convergence tracks availability.",
     ],
     high: [
@@ -65,7 +65,7 @@ OBSERVATION_POOLS['brack'] = {
     any: [
       "One producer crash and {species} starts pulling toward the other. A crash in both and there's nowhere to pull toward.",
       "The Fringe is the whole world for {species}. Neither biome fully. Both biomes partially. The margin is all it has.",
-      "I've started checking {species} distribution as a cross-biome health indicator. The pull direction tells me which producer is weaker.",
+      "I check where {species} is working before I check either producer. The pull direction is usually ahead of the numbers.",
       "{primaryPredator} doesn't come here often. When it does, at these population levels, every individual counts.",
       "The late surge recovery pattern means {species} doesn't bounce fast. Watching a recovery from near-zero takes many cycles.",
     ],
@@ -98,12 +98,12 @@ OBSERVATION_POOLS['brack'] = {
       "Both producers supporting simultaneously. This window closes. I'm logging its length.",
     ],
     low: [
-      "The pull toward {primaryFood} is consistent with a {borderBiome} producer stress event. I check the coverage next.",
+      "The sweep is tight against the {primaryFood} side now. The {borderBiome} edge isn't worth the distance this cycle.",
       "Low numbers and a narrow effective range. {species} is managing, but the margin is thin.",
       "At these counts, one {primaryPredator} visit changes the population materially. I track biome entry data now.",
     ],
     crash: [
-      "Crisis. Both producers down, {primaryPredator} presence confirmed in the previous cycle. The variables aligned badly.",
+      "Both producers down and {primaryPredator} was here last cycle. The Fringe has nothing left to offer.",
       "I've watched {species} pull back from near-zero before. The recovery is slow and comes late. I wait.",
       "Three individuals logged across the full Fringe survey. The Fringe is effectively empty.",
     ],
