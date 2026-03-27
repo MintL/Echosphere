@@ -1,5 +1,5 @@
 # ECHOSPHERE - Game Design Document
-*Version 2.1 - Home Screen, Event Card Hierarchy, and Research Strip Updated*
+*Version 2.12 - UI model redesigned: log-as-home, sticky header, inline decision records, outcome entries, research events in log, no session summary screen, no species/ecosystem columns*
 
 ---
 
@@ -186,26 +186,26 @@ The player is a **naturalist-observer** with limited intervention capacity.
 ### What the Player Does NOT Do
 - Control creatures directly
 - Set population targets
-- Manage resources manually
+- Generate resources through active play
 - Play in real time
 
 ### What the Player DOES Do
-- Observe the ecosystem through a passive view
-- Receive event notifications when significant things happen
+- Read events and the home screen to understand what changed since their last visit
+- Initiate and manage research projects — the primary activity of every session
 - Make infrequent decisions when events require a response
-- Place and manage research tools
-- Occasionally introduce species from a limited catalog
-- Guide evolutions when they occur
-- Monitor biome health and species populations at a glance
+- Choose where to place research tools — a meaningful spatial decision that shapes what the researcher learns first
+- Spend field data and specimens deliberately on projects, interventions, and introductions
+- Introduce a new species from the catalog when extinction opens a vacant niche
+- Recognize and name an evolved subpopulation as a distinct species when it has diverged far enough
+- Monitor biome health and species populations at a glance between events
 
 ### Session Structure
 A typical player session is short (2-5 minutes):
-1. Open the app - see what changed since last visit
-2. Read any pending events
-3. Make a decision (or defer it)
-4. Check tool status, replace any destroyed equipment
-5. Observe the current state briefly
-6. Close the app - the world continues
+1. Open the app — the log opens scrolled to the last-read marker
+2. Read new entries below the marker
+3. Respond to any crisis cards via the decision modal
+4. Collect any completed research rewards
+5. Close the app — the world continues
 
 Long sessions (10-20 minutes) happen when a complex event chain is unfolding or a major evolution is occurring.
 
@@ -286,7 +286,85 @@ Not every change in the simulation generates an event. Events should feel notabl
 - Events about well-known species feel more significant than events about unknown ones
 - Tools raise the significance of events for the species or biome they cover
 
+### Event Gating by Knowledge Milestone
+
+Not all events fire for all species at all times. Events are gated by the researcher's current knowledge of the species — a crisis event for a creature the researcher has no name for has no emotional weight and no actionable context. The player cannot intervene on behalf of something they don't understand.
+
+Each species has a knowledge tier based on its current milestones. The tier determines which event types can fire:
+
+| Knowledge tier | Milestones | Events that can fire |
+|---|---|---|
+| Undiscovered | None | None — species exists in sim, invisible to researcher |
+| Sighted | First observed | Sighting events only |
+| Known | Named + Role identified | Population thresholds, spatial events, basic relationship events, biome crossings |
+| Understood | Behavior mapped | Full palette — crisis events, predator/prey dynamics, migration arcs |
+| Modeled | Population modeled | Full palette plus population trend events and intervention suggestions |
+
+**Undiscovered** — the species runs in the simulation and affects the ecosystem, but fires no events. The player has no awareness of it.
+
+**Sighted** — only sighting events fire. "Saw something again near the Scorch border." No population data, no role, no name. The researcher notices a presence, not a status. Population changes, predator pressure, and ecological events are all suppressed — they would be meaningless without context.
+
+**Known** — ecological events begin. Population thresholds, biome crossings, first interactions with other named species. The researcher now has enough context for these to be meaningful. Crisis events are still suppressed — the researcher knows what this creature is but not how it behaves under pressure.
+
+**Understood** — the full event palette unlocks. Crisis events, predator surge events, migration arcs, relationship events. The researcher knows how this species moves, what it eats, what threatens it. A population collapse now has weight because the researcher understands what is being lost.
+
+**Modeled** — no new event types, but population trend events fire with greater precision. Intervention suggestions become more specific. The researcher can see patterns the earlier tiers couldn't resolve.
+
+**Implementation note** — the significance score system already exists and runs per event. Milestone gating sits above it: if a species is below the required tier for an event subtype, the event does not fire at all, regardless of significance score. The gating is binary per subtype, not a significance penalty.
+
+```javascript
+const eventTierRequirements = {
+  // Discovery
+  firstSighting:          "undiscovered",
+  subsequentSighting:     "sighted",
+
+  // Population
+  populationPeak:         "known",
+  populationCrash:        "known",
+  populationStable:       "known",
+
+  // Spatial
+  firstBiomeEntry:        "known",
+  subpopulationStable:    "known",
+  biomeBorderCrossing:    "known",
+
+  // Relationship
+  firstInteraction:       "known",
+  predatorAbsence:        "understood",
+  symbiosisConfirmed:     "understood",
+
+  // Crisis
+  populationCrisis:       "understood",
+  extinctionWarning:      "understood",
+  cascadeRisk:            "understood",
+
+  // Population modeling
+  populationTrend:        "modeled",
+  cycleRhythmDetected:    "modeled"
+}
+
+function canFireEvent(eventSubtype, species) {
+  const requiredTier = eventTierRequirements[eventSubtype]
+  return getKnowledgeTier(species) >= TIER_ORDER.indexOf(requiredTier)
+}
+
+const TIER_ORDER = ["undiscovered", "sighted", "known", "understood", "modeled"]
+
+function getKnowledgeTier(species) {
+  if (!species.milestones.observed)       return TIER_ORDER.indexOf("undiscovered")
+  if (!species.milestones.roleIdentified) return TIER_ORDER.indexOf("sighted")
+  if (!species.milestones.behaviorMapped) return TIER_ORDER.indexOf("known")
+  if (!species.milestones.populationModeled) return TIER_ORDER.indexOf("understood")
+  return TIER_ORDER.indexOf("modeled")
+}
+```
+
 ### Trigger Categories
+
+**Discovery triggers:**
+- First sighting threshold crossed for an undiscovered species (see Discovery System)
+- Subsequent sighting cooldown fired for an unstudied species
+- Posthumous discovery on extinction of a never-sighted species
 
 **Population thresholds:**
 - Population crossed above historic peak
@@ -494,46 +572,784 @@ The ecosystem never fully stabilizes - populations oscillate constantly, biome b
 
 ## Event Writing System
 
-Events are generated from simulation data combined with a procedural text system. No AI generation - all text is assembled from authored pools combined at runtime.
+Events are generated from simulation data combined with a procedural text system. No AI generation — all text is assembled from authored pools combined at runtime. The simulation generates facts. The writing system turns them into text.
 
 ### Template Structure
 
-Every event is built from slots:
+Every event is built from four slots:
 
 ```
 [observation_detail] [fact] [context?] [researcher_reaction]
 ```
 
-Context only appears if relevant history exists. The system rewards long playthroughs by generating richer, more personal text as history accumulates.
+Context only appears if relevant history exists. It should be empty most of the time — its power comes from scarcity. When it fires with a specific cycle reference it lands much harder than if it appeared on every event. The system rewards long playthroughs by generating richer, more personal text as history accumulates.
+
+### Relationship-Based Tokens
+
+Templates never hardcode species names or relationships. Instead they use tokens that resolve dynamically from the species' current simulation state. This means the writing system works for every species — including catalog introductions and evolved species that didn't exist at authoring time.
+
+**Available tokens:**
+
+| Token | Resolves to |
+|---|---|
+| `{species}` | Species name |
+| `{homeBiome}` | Primary biome name |
+| `{borderBiome}` | Border biome name if applicable |
+| `{primaryPredator}` | Highest-population known predator |
+| `{primaryFood}` | Primary food source name |
+| `{declinePct}` | Population change percentage |
+| `{lastCrashCycle}` | Cycle number of most recent crash |
+| `{cyclesSinceLow}` | Cycles since population low |
+| `{predatorRiseCycles}` | Cycles predator population has been rising |
+
+Tokens resolve at render time:
+
+```javascript
+function resolveTokens(template, species, state) {
+  const primaryPredator = getPrimaryPredator(species, state)
+  const primaryFood = getPrimaryFood(species, state)
+
+  return template
+    .replace("{species}", species.name)
+    .replace("{homeBiome}", species.homeBiome)
+    .replace("{primaryPredator}",
+      primaryPredator?.milestones.roleIdentified
+        ? primaryPredator.name
+        : "something in the " + species.homeBiome)
+    .replace("{primaryFood}",
+      primaryFood?.milestones.roleIdentified
+        ? primaryFood.name
+        : "its food source")
+    .replace("{declinePct}", Math.abs(getPopulationChangePct(species, state)))
+    .replace("{lastCrashCycle}", species.history.lastCrashCycle)
+    .replace("{cyclesSinceLow}", getCyclesSinceLow(species, state))
+    .replace("{predatorRiseCycles}", getPredatorRiseCycles(primaryPredator, state))
+}
+```
+
+The knowledge check on `primaryPredator` is important — if the predator hasn't been named yet, the text falls back to a vague description. The researcher doesn't know what's hunting the Vellin yet. The text reflects that.
+
+Relationship resolution picks the most narratively relevant predator or food source from the species' relationship list — highest population, weighted toward species the researcher already knows:
+
+```javascript
+function getPrimaryPredator(species, state) {
+  return species.eatenBy
+    .map(id => getSpecies(state, id))
+    .filter(s => s.exists)
+    .sort((a, b) => {
+      const aScore = a.population * (a.milestones.roleIdentified ? 1.5 : 0.5)
+      const bScore = b.population * (b.milestones.roleIdentified ? 1.5 : 0.5)
+      return bScore - aScore
+    })[0] ?? null
+}
+```
+
+### Template Pools
+
+Each event subtype has authored pools for each slot. Selections rotate to prevent repetition — the same sentence never fires twice in the same session.
+
+**Example — population crash:**
+
+```javascript
+const crashTemplates = {
+  observationDetail: [
+    "The {homeBiome} was quiet this cycle.",
+    "Saw fewer {species} near the {primaryFood} today.",
+    "{species} have pulled back toward the northern {homeBiome}.",
+    "Scattered groups only. Nothing like their usual density.",
+    "The {primaryFood} is barely being touched.",
+  ],
+  fact: [
+    "{species} down {declinePct}%, {primaryPredator} pressure from above.",
+    "Numbers down {declinePct}% this cycle.",
+    "{primaryPredator} ranging further in. Down {declinePct}% this cycle.",
+    "Down {declinePct}% from last cycle.",
+    "Population down {declinePct}%. Lowest in {cyclesSinceLow} cycles.",
+  ],
+  context: [
+    "This is the same pattern that preceded the crash in cycle {lastCrashCycle}.",
+    "Third consecutive decline.",
+    "They recovered last time. Barely.",
+    "{primaryPredator} numbers have been rising for {predatorRiseCycles} cycles.",
+  ],
+  reaction: [
+    "Still learning what {primaryPredator} pressure means for them.",
+    "They usually recover. Usually.",
+    "I know this pattern. I don't like it.",
+    "Something has shifted.",
+    "I'm not confident they do it again.",
+  ]
+}
+```
+
+### Observation Detail Pools
+
+The observation detail pool is the soul of each species. It is the one place where species-specific authoring is essential and irreplaceable — this is where Vellin feels like Vellin and not just "primary consumer, Highgrowth." Templates handle mechanical facts. Observation details carry the creature's personality and the researcher's growing intimacy with it.
+
+Each pool is divided by knowledge tier. Early entries feel sparse and uncertain. Later entries feel intimate and specific. The pool uses the same token system as templates so relationship names stay dynamic.
+
+**What the pool should contain:**
+- Behavioral observations — how they move, rest, feed, react to threat
+- Physical details — what they look like in motion, at rest, up close. Alien but specific.
+- Unanswered questions — especially in early tiers, things the researcher doesn't know yet
+- Relationship glimpses — brief observations of interactions with other species, using tokens
+- Temporal details — time of cycle activity, seasonal patterns, changes noticed over many cycles
+
+**Example — Vellin observation pool:**
+
+```javascript
+const vellinObservationPool = {
+  sighted: [
+    "Something moving through the upper growth. Groups of four or five.",
+    "Pale coloring. Hard to see against the {primaryFood}.",
+    "Skittish. Scattered before I could get close.",
+    "Saw them again near the canopy edge. Fast movers.",
+  ],
+  known: [
+    "They move in loose groups, always faster near the canopy edge.",
+    "The way they graze — methodical, almost ritualistic. Same patches in the same order.",
+    "Resting in clusters in the mid-canopy today. Hard to count when they're still.",
+    "A {primaryPredator} shadow crossed above. The whole group scattered in under a minute.",
+    "Found one separated from its group near the {homeBiome} border. Moved differently alone.",
+    "They communicate when threatened. I still don't know how.",
+    "The young ones stay near the center of the group. The larger ones range further.",
+  ],
+  understood: [
+    "The {primaryPredator} pressure is changing how they move. More time in the lower canopy than usual.",
+    "Watched a group of eleven navigate around a {primaryPredator} territory for most of a cycle. Methodical.",
+    "They don't sleep the way I expected. Short rest cycles, never all at once. Someone is always watching.",
+    "The grazing rhythm has shifted — heavier feeding early cycle, almost nothing by midday. Following the {primaryFood} growth patterns.",
+    "Saw two groups merge at the northern edge and separate again later. Some kind of exchange. Couldn't determine what.",
+    "The older individuals move differently. Slower but more deliberate. They seem to know where the {primaryPredator} will be.",
+  ],
+  modeled: [
+    "The 6-cycle population rhythm is holding. Up when {primaryFood} is abundant, down when {primaryPredator} follows them into the upper canopy.",
+    "Their ranging patterns are more predictable than I initially thought. The same routes, slightly adjusted each cycle.",
+    "I can estimate group size now from sound alone. The specific frequency of their communication changes with density.",
+    "The relationship between {species} density and {primaryFood} coverage is almost perfectly inverse. They regulate each other.",
+  ]
+}
+```
+
+Every species pool should contain details that could only apply to that creature. Each pool is a portrait. Below are the simulation-informed pools and writing notes for all eleven species.
+
+---
+
+### Species Observation Pools and Writing Notes
+
+All pools and notes are grounded in actual simulation behaviour across 20 runs × 200 cycles. Population figures and patterns cited here reflect real output from the headless audit.
+
+---
+
+**VELLIN** — primaryConsumer, Highgrowth
+
+*Writing notes:* The most volatile species in the simulation. CV 103.5%, living range 9–818, median only 77. Only 42% of crashes recover within 200 cycles — the researcher's optimism should erode across the late tier. Keth and Skethran are both predators; Skethran is the more frequent crash driver at 12.65 compound events per run vs Keth at 8.25. The predator lag is median 1 cycle — almost simultaneous. The researcher can see the connection forming in real time. Crashes start as early as cycle 14.
+
+```javascript
+const vellinObservationPool = {
+  sighted: [
+    "Something moving through the upper growth. Groups of four or five.",
+    "Pale coloring. Hard to see against the {primaryFood}.",
+    "Skittish. Scattered before I could get close.",
+    "Saw them again near the canopy edge. Fast movers.",
+  ],
+  known: [
+    "They move in loose groups, always faster near the canopy edge.",
+    "The way they graze — methodical, almost ritualistic. Same patches in the same order.",
+    "Resting in clusters in the mid-canopy today. Hard to count when they're still.",
+    "A {primaryPredator} shadow crossed above. The whole group scattered in under a minute.",
+    "Found one separated from its group near the {homeBiome} border. Moved differently alone.",
+    "They communicate when threatened. I still don't know how.",
+    "The young ones stay near the center of the group. The larger ones range further.",
+    "Population near 77 — their typical level. Keth pressure is moderate.",
+    "At 440 they're crowding the canopy edge. I can hear them from camp.",
+  ],
+  understood: [
+    "The {primaryPredator} pressure is changing how they move. More time in the lower canopy than usual.",
+    "Watched a group of eleven navigate around a {primaryPredator} territory for most of a cycle. Methodical.",
+    "They don't sleep the way I expected. Short rest cycles, never all at once. Someone is always watching.",
+    "The grazing rhythm has shifted — heavier feeding early cycle, almost nothing by midday. Following the {primaryFood} growth patterns.",
+    "Saw two groups merge at the northern edge and separate again later. Some kind of exchange. Couldn't determine what.",
+    "The older individuals move differently. Slower but more deliberate. They seem to know where the {primaryPredator} will be.",
+    "Down to around 23 — low end of what I've recorded. {primaryPredator} still active above.",
+    "Pre-crash signature: clustered, skittish, not ranging. Last time I saw this they dropped sharply the next cycle.",
+    "At 440 the {primaryFood} is going to feel this. The cycle is about to turn.",
+  ],
+  modeled: [
+    "The oscillation is consistent: floor around 23, ceiling around 440. We're at the start of an upswing.",
+    "Classic post-crash setup — {primaryPredator} numbers still dropping. Vellin should rebound in 80–90 cycles.",
+    "The {primaryFood} crash is going to reach them. I'd put a Vellin crisis at 4–6 cycles out.",
+    "Both predator lines are suppressed. They have a clear window — they'll take it to the canopy ceiling before this is over.",
+    "I've mapped this oscillation across many reference periods. The relationship between Vellin density and {primaryFood} coverage is almost perfectly inverse.",
+    "Holding at 77 while {primaryPredator} is high — {secondaryPredator} must be drawing off the pressure.",
+  ]
+}
+```
+
+---
+
+**KETH** — secondaryConsumer, Highgrowth
+
+*Writing notes:* A surge species. 394 populationSurge events across 20 runs, almost no crashes. Population ranges 2–270, median 51. Its story is booming when Vellin is abundant and going quiet when it isn't. It cannot enter Understory. The researcher notices it primarily as an aerial presence — hunting from above, diving through the canopy. The lag to Vellin crisis is median 1 cycle: the Keth surge and the Vellin crash happen almost simultaneously. Extinction warnings are rare (only 3 events, all after cycle 133) — Keth almost never dies, it just ebbs.
+
+Pool should feel: territorial, aerial, present as pressure rather than as individual animals. The researcher sees its effects more than it directly.
+
+```javascript
+const kethObservationPool = {
+  sighted: [
+    "Something large moving through the upper canopy. Not {primaryFood}.",
+    "Aerial. Fast. Gone before I could track it properly.",
+    "A shadow across the upper growth — the {prey} scattered instantly.",
+  ],
+  known: [
+    "{species} ranging widely today — {prey} have compressed to the upper growth.",
+    "Counted four in the northern canopy this morning. Territory seems fixed for now.",
+    "The diving pattern is distinctive — straight down through the growth, no hesitation.",
+    "At 92 they're visible everywhere in the upper {homeBiome}. Pressure on {prey} will show within a cycle.",
+    "Quiet today. Either full or the {prey} have moved somewhere I'm not watching.",
+  ],
+  understood: [
+    "The {species} boom always follows the {prey} surge by a cycle or two. Textbook lag.",
+    "At 156 — well above their baseline of 60. {prey} won't sustain this pressure long.",
+    "They've pushed deeper into {prey} territory than I've seen before. The southern canopy is under constant watch.",
+    "Numbers dropping. The {prey} correction is catching up to them.",
+  ],
+  modeled: [
+    "The {species}/{prey} oscillation is the primary rhythm of the {homeBiome}. Everything else moves around it.",
+    "At 270 the {prey} population is already in crisis. The {species} surge will peak and collapse within 10 cycles.",
+    "Keth quiet, Vellin recovering — this is the stable phase of the cycle. It won't last.",
+  ]
+}
+```
+
+---
+
+**SKETHRAN** — secondaryConsumer, Highgrowth/Understory
+
+*Writing notes:* The most ecologically connected species in the starting roster. Hunts both Vellin and Woldren. 563 surge events across 20 runs. The Skethran→Vellin lag is median 1 cycle (fast, visible), but Skethran→Woldren lag is median 8 cycles (slow, requires the researcher to have been watching long enough to connect it). This is the species that makes the Highgrowth/Understory relationship legible. It is also the only regular check on Woldren besides Mordath. Border position 0.5 — genuinely split between both biomes.
+
+Pool should feel: patient, ranging, the researcher always slightly uncertain which biome it's in today.
+
+```javascript
+const skethranObservationPool = {
+  sighted: [
+    "Something at the {homeBiome}/{borderBiome} border. Ground level, moving slow.",
+    "Larger than I expected. Moving between the biomes without hesitation.",
+    "Tracks near the Fringe. Something is ranging through here regularly.",
+  ],
+  known: [
+    "{species} in the upper {homeBiome} today. Yesterday they were in the {borderBiome}.",
+    "Patient hunters. They wait longer than the {primaryPredator} does before committing.",
+    "Saw one follow a {primaryPrey} group for most of a cycle before striking.",
+    "They move differently in {borderBiome} — slower, more cautious. The darkness changes them.",
+  ],
+  understood: [
+    "{species} heavy in {homeBiome} right now. {primaryPrey} are going to feel this within a cycle.",
+    "The {borderBiome} population of {secondaryPrey} hasn't seen {species} pressure in a while. That's changing.",
+    "Counted 139 — well above their median. Both prey populations are under simultaneous pressure.",
+    "They're ranging further into {borderBiome} than usual. The {primaryPrey} pressure in {homeBiome} must be easing.",
+  ],
+  modeled: [
+    "{species} is the thread connecting {homeBiome} and {borderBiome} dynamics. When it moves, both biomes shift.",
+    "The {secondaryPrey} crash in {borderBiome} is running 8 cycles behind the {species} surge here. Right on schedule.",
+    "At 97 — median. Balanced pressure on both prey populations. This is what ecosystem equilibrium looks like.",
+  ]
+}
+```
+
+---
+
+**MORDATH** — apexPredator, all biomes
+
+*Writing notes:* Low population (2–41, median 10), enormous ecological impact. 2.5 biome entries per run, 1.1 cascade risk events per run. The most ecologically active species by event density relative to population. Never crashes (only 6 crisis events across 20 runs, all late cycle). Moves with apparent intention — follows prey. When it leaves a biome, secondary consumers boom. Cannot enter deep Scorch Flats. The researcher takes many cycles to name it.
+
+Pool should feel: rare, significant, each sighting deliberate. The researcher is always slightly awed. Short entries, never casual.
+
+```javascript
+const mordathObservationPool = {
+  sighted: [
+    "Something large. Not Keth. Different movement entirely.",
+    "Saw it briefly at the {homeBiome}/{borderBiome} border. Gone before I could confirm.",
+    "The other species went quiet. Something moved through.",
+  ],
+  known: [
+    "{species} in the eastern {homeBiome}. Everything within range knew immediately.",
+    "It moved slowly. It didn't need to move fast.",
+    "Three {primaryPrey} gone from the southern territory. {species} was there yesterday.",
+    "Watched it for an hour from distance. It covered ground I've never seen {primaryPrey} cross.",
+  ],
+  understood: [
+    "{species} has shifted toward {borderBiome}. The {secondaryConsumer} populations in {homeBiome} will notice within a few cycles.",
+    "It hasn't been in {homeBiome} for twelve cycles. The {prey} are ranging more freely. They shouldn't.",
+    "Population at 10 — typical. Its impact has nothing to do with its numbers.",
+    "Returned to {homeBiome}. The {secondaryConsumer} surge that built up in its absence will correct quickly.",
+  ],
+  modeled: [
+    "The {species} moves on prey availability, not territory. When it arrives somewhere, something has been building there.",
+    "Every time it leaves {homeBiome} the secondary consumers boom. Every time it returns they crash. It is the cycle.",
+    "At 25 — above its median of 10. A {species} surge is one of the rarest events in this ecosystem. Something is very right or very wrong.",
+  ]
+}
+```
+
+---
+
+**TORRAK** — primaryConsumer, Scorch Flats
+
+*Writing notes:* 14 extinctions out of 20 runs. Crisis warnings from cycle 19 onward. CV 149.1% — the most volatile species in the simulation. Eats only Scaleweed. Almost no predator pressure except occasional Mordath. Population regulated almost entirely by food availability. Moves like geology — slow, solitary, alien. The researcher senses early that this one is precarious.
+
+Pool should feel: heavy, slow, geological. The researcher's tone should carry quiet fatalism from the mid tier onward. Sightings should feel like observing something ancient that doesn't know it's endangered.
+
+```javascript
+const torrakObservationPool = {
+  sighted: [
+    "Something large and low in the Scorch. Moved so slowly I almost mistook it for terrain.",
+    "Armored. Heavy. No apparent awareness of me at all.",
+    "Single individual. No others visible across the entire southern flat.",
+  ],
+  known: [
+    "{species} moving across the {primaryFood} field. Takes the same path each cycle.",
+    "Solitary. I've never seen two in the same area. They seem to avoid each other.",
+    "The carapace reflects the heat. Up close it's almost uncomfortable to watch.",
+    "Feeding for hours on a single {primaryFood} patch. Methodical. Slow. Thorough.",
+    "Population around 9 — this is normal for them. They've always been sparse.",
+  ],
+  understood: [
+    "{primaryFood} is thinning in the southern flat. {species} population will follow within a few cycles.",
+    "Down to 3. They were at 26 when I first named them. The math isn't good.",
+    "Saw one moving north — further than I've recorded them ranging. The southern {primaryFood} must be nearly gone.",
+    "The {species} and the {primaryFood} are entangled completely. One goes, the other follows.",
+  ],
+  modeled: [
+    "At 109 — the highest I've recorded. The {primaryFood} surplus won't last and neither will this.",
+    "The extinction warnings started at cycle 19 in my reference data. They arrive early and often for {species}.",
+    "{species} population is a direct readout of {primaryFood} health, with a few cycles lag. Nothing more, nothing less.",
+    "Down to 1. I've watched this before. Sometimes they recover from here. Not usually.",
+  ]
+}
+```
+
+---
+
+**WOLDREN** — primaryConsumer, Understory
+
+*Writing notes:* Living range 1–240, median 12. CV 138.3%. 20 extinction warnings across 20 runs, 2 actual extinctions. Never triggers populationCrisis (the crash is too gradual). The researcher barely sees them — they live in permanent darkness and the research tools that cover Understory are different from Highgrowth. Long-lived, slow, genuinely alien. The Skethran→Woldren predation lag is median 8 cycles — slow enough to be invisible without sustained observation.
+
+Pool should feel: rare, dark, ancient. The researcher encounters them infrequently and never feels like they fully understand what they're seeing. Questions outnumber observations.
+
+```javascript
+const wolrdrenObservationPool = {
+  sighted: [
+    "Movement in the deep {homeBiome}. Heavy. Slow. Something large.",
+    "First confirmed sighting — floor level, near the {primaryFood} root mass.",
+    "Solitary. Barely reacted to my presence. Either it didn't notice or didn't care.",
+  ],
+  known: [
+    "{species} at the root level again. Same location as last cycle. They don't range like the {homeBiome} species do.",
+    "Moves on a different time scale. I watched it for two hours and it covered perhaps thirty meters.",
+    "Population at 12 — this seems to be their typical density. Very spread across the {homeBiome} floor.",
+    "No reaction to the {primaryPredator} passing overhead. Either it didn't register or it knows something I don't.",
+  ],
+  understood: [
+    "{species} at 2. I'm not sure when the decline started — they're hard to count at the best of times.",
+    "The {primaryPredator} has been ranging more heavily through {homeBiome}. The {species} numbers are following.",
+    "Long-lived. I think some of the individuals I'm seeing now were here when I arrived. That makes the decline harder to watch.",
+    "The {primaryFood} is healthy. The pressure is predation, not starvation. That's different.",
+  ],
+  modeled: [
+    "The {primaryPredator}→{species} lag is long — around 8 cycles. By the time I see the crash, the cause is cycles old.",
+    "At 240 — the highest recorded. {primaryPredator} must be absent or distracted. This surge won't persist.",
+    "The Understory runs on a different clock. What looks stable here can be weeks into a slow collapse already.",
+  ]
+}
+```
+
+---
+
+**BRACK** — primaryConsumer, Scorch Flats/Highgrowth Fringe
+
+*Writing notes:* Lives at the border. Eats both Feltmoss (border-scaled) and Scaleweed. Only Mordath hunts it. 7 extinctions across 20 runs, 15 extinction warnings. The entanglement species — always one producer crash away from a crisis. CV 93.9%. Border position 0.3, so primarily Scorch but opportunistically Highgrowth. The researcher probably finds Brack unglamorous — armored, tough, not particularly dramatic until suddenly it is. The surge events are all very late cycle (156+), suggesting long slow recovery arcs.
+
+Pool should feel: tough, unglamorous, enduring. The researcher respects it without romanticising it. Notes should feel practical until the crisis tier when real concern surfaces.
+
+```javascript
+const brackObservationPool = {
+  sighted: [
+    "Something armored at the {homeBiome}/{borderBiome} Fringe. Heavy.",
+    "Moves like the {primaryFood} terrain — slow, low, hard to distinguish at distance.",
+    "Single individual. Heading toward the {borderBiome} edge.",
+  ],
+  known: [
+    "{species} working the Fringe today — grazing the {primaryFood} edge near the heat boundary.",
+    "Armored heavily. I've watched {primaryPredator} ignore it entirely on most passes.",
+    "They seem to exist between two worlds without fully belonging to either.",
+    "Population around 13. Sparse but consistent. They don't need large numbers to function.",
+  ],
+  understood: [
+    "The {primaryFood} crash in {borderBiome} is going to find {species} next. They can't graze {secondaryFood} alone.",
+    "Down to 9 — close to the floor of what I've recorded. The Fringe is thin right now.",
+    "{species} have moved deeper into {homeBiome} than usual. The border {primaryFood} must be exhausted.",
+    "Tough species. They've been in crisis three times already and pulled through.",
+  ],
+  modeled: [
+    "{species} population is a trailing indicator of {primaryFood} health in both biomes simultaneously.",
+    "At 68 — near their ceiling. The Fringe conditions are favorable on both sides right now. Rare.",
+    "The {species} crash always follows a dual producer dip — {primaryFood} and {secondaryFood} both down. Watch for that combination.",
+  ]
+}
+```
+
+---
+
+**GRUBMERE** — decomposer, Understory
+
+*Writing notes:* The invisible species. 20 extinction warnings across 20 runs — every single run. But no populationCrisis events before cycle 60 and no direct sightings in normal observation. The researcher doesn't notice the Grubmere until it's in trouble. Population range 8–273, median 31, CV 95.9%. The pool should reflect that the researcher barely sees them — most entries are indirect evidence, effects rather than sightings. When the extinction warning fires it should feel like a discovery, not a status update.
+
+Pool should feel: almost entirely invisible. Indirect. The researcher observes effects and infers presence. The late tier should feel like suddenly realising how much was depending on something you never really saw.
+
+```javascript
+const grubmereObservationPool = {
+  sighted: [
+    "Movement in the root system — subsurface. Something is down there.",
+    "Brief surface appearance near the {homeBiome} floor. Gone before I could get closer.",
+    "Tracks in the substrate. Something ranges through here regularly at depth.",
+  ],
+  known: [
+    "Rarely visible. I know they're here from the {primaryFood} recovery rates more than direct observation.",
+    "The {homeBiome} floor processes dead matter faster when their population is healthy. Slower now.",
+    "Saw one briefly in the root mass. Smaller than expected.",
+    "Population at 31 — estimated. They're impossible to count accurately. This is inference.",
+  ],
+  understood: [
+    "The {primaryFood} recovery has slowed noticeably. Grubmere numbers must be down.",
+    "Population warning at 29. I've been watching the {homeBiome} health indicators — this was coming.",
+    "They don't surface much, but the ecosystem feels different when they're struggling. Harder to define. Heavier.",
+    "Realising now how much I've been taking them for granted.",
+  ],
+  modeled: [
+    "The Grubmere extinction warning arrives at cycle 70–90 in most reference runs. It arrives without much warning even then.",
+    "Everything that dies in this ecosystem passes through the Grubmere eventually. When they falter, the debt accumulates.",
+    "At 273 — the highest recorded. The {homeBiome} has had heavy mortality recently. They're thriving on it.",
+    "The {homeBiome} health is directly tied to their population in a way that only becomes obvious when it breaks.",
+  ]
+}
+```
+
+---
+
+**FELTMOSS** — producer, Highgrowth
+
+*Writing notes:* CV 51.5%, 411 surge events across 20 runs. The most abundant energy source in the ecosystem. Surge events dominate — it mostly thrives. Crashes are rare (11 populationCrisis events) but impactful. The researcher notices it everywhere and takes it for granted until a crash. Population range 65–1,194, median 672. It is the foundation the Highgrowth is built on.
+
+Pool should feel: ubiquitous, easy to overlook, the background of everything. When it appears in observation details it should feel like noting the air quality — noticed mainly when something is wrong.
+
+```javascript
+const feltmossObservationPool = {
+  sighted: [
+    "Dense coverage across the upper {homeBiome}. The baseline here.",
+    "Covers every available surface in the upper growth. Hard to imagine this biome without it.",
+  ],
+  known: [
+    "{species} at 1,006 — well above baseline. The {homeBiome} is rich right now.",
+    "Coverage thinning in the northern section. The {primaryConsumer} pressure is showing.",
+    "Recovery underway after the grazing pressure eased. Growing back fast.",
+  ],
+  understood: [
+    "The {species} crash will reach the {primaryConsumer} within a few cycles. The Highgrowth food web runs on this.",
+    "At 65 — lowest recorded. If it doesn't recover, the whole upper {homeBiome} shifts.",
+    "Unchecked coverage spreading — {primaryConsumer} numbers must be down. The balance is off.",
+  ],
+  modeled: [
+    "{species} is the Highgrowth. Everything else is downstream of it.",
+    "The oscillation here is driven by {primaryConsumer} grazing cycles. Predictable once you know the rhythm.",
+  ]
+}
+```
+
+---
+
+**NIGHTROOT** — producer, Understory
+
+*Writing notes:* CV 27.4% — the most stable species in the simulation. 518 surge events, zero populationCrisis events. Almost never threatened. Grows in permanent darkness from mineral seepage. The quiet foundation of the deep layer. The researcher probably forgets about it for long stretches.
+
+Pool should feel: stable, ancient, barely observed. The researcher checks in occasionally and finds it unchanged.
+
+```javascript
+const nightrootObservationPool = {
+  sighted: [
+    "Pale root mass covering the {homeBiome} floor. Has to be old — it's everywhere.",
+    "Barely visible in the low light. Slow growth. This has been here a long time.",
+  ],
+  known: [
+    "{species} at 384 — close to its median. Stable as ever.",
+    "The {homeBiome} floor is healthy when {species} is healthy. It usually is.",
+    "Grows slowly enough that I rarely notice change. That's not a problem. That's what it does.",
+  ],
+  understood: [
+    "The {primaryConsumer} pressure on {species} has been light. It's thriving quietly.",
+    "At 136 — lower than I've seen it. Something is different in the deep {homeBiome}.",
+  ],
+  modeled: [
+    "{species} is the bedrock of the {homeBiome}. It almost never fails. Almost.",
+    "The stability here is deceptive — it's slow to damage and slow to recover.",
+  ]
+}
+```
+
+---
+
+**SCALEWEED** — producer, Scorch Flats
+
+*Writing notes:* CV 24.8%, the second most stable producer. 1,781 surge events across 20 runs — by far the most of any species. Crashes are real (8 populationCrisis events) but recovery is reliable (100% recovered within run). The only energy source that can survive the Scorch heat. Irreplaceable. The researcher might initially mistake it for geological formation.
+
+Pool should feel: harsh, mineral, alien. Not lush like Feltmoss — sparse, armored, almost inorganic in appearance.
+
+```javascript
+const scaleweedObservationPool = {
+  sighted: [
+    "Mineral-crusted patches across the southern flat. Initially thought it was geology.",
+    "Sparse. Very sparse. But covering more area than it first appears.",
+    "The only living thing in the southern {homeBiome} that looks like it belongs here.",
+  ],
+  known: [
+    "{species} at 258 — typical for the {homeBiome}. Never abundant but always present.",
+    "The armored surface survives the heat that would kill anything from the other biomes.",
+    "Recovery after the last grazing pressure was slower than Feltmoss would manage. The Scorch doesn't hurry anything.",
+  ],
+  understood: [
+    "Coverage thinning in the eastern flat. The {primaryConsumer} pressure is consistent and the {species} can only recover so fast.",
+    "At 73 — lowest recorded. The Scorch Flats food web depends entirely on this.",
+    "{species} recovery underway. Slow but reliable. It always comes back.",
+  ],
+  modeled: [
+    "{species} has crashed 8 times across reference runs. It has recovered every single time. The Scorch is harsh but stable.",
+    "The {primaryConsumer} populations of the Scorch Flats oscillate around {species} availability. Everything here does.",
+  ]
+}
+```
 
 ### Species History Flags
-Each species tracks flags that shape event text:
-- `cyclesObserved` - how long the researcher has known them
-- `previousCrashes` - number of past population crises
-- `lastCrashCycle` - cycle number of most recent crisis
-- `crossedBiome` - whether they have migrated before
-- `symbioticPartners` - known relationships with other species
 
-### Example - Same Event, Three Outputs
+Each species tracks flags that shape slot selection — particularly which reaction tier fires and whether the context slot is available:
 
-Simulation data: Vellin population declined 23%, cause is predator pressure from Keth.
+- `cyclesObserved` — total time since first sighting, drives tonal register
+- `cyclesSinceRoleIdentified` — time since named, drives reaction tier selection
+- `eventsInvolving` — total surfaced events, proxy for researcher familiarity
+- `previousCrashes` — number of past population crises
+- `lastCrashCycle` — cycle number of most recent crisis, used in context slot
+- `crossedBiome` — whether they have migrated before
+- `symbioticPartners` — known relationships with other species
 
-**Cycle 8** (newly named, no crash history):
-> *Saw fewer Vellin near the Feltmoss today. Numbers down 12% - Keth pressure from above. Still learning what Keth pressure means for them.*
+### Researcher Reaction Tiers
 
-**Cycle 34** (well known, no crash history):
-> *The Vellin have pulled back toward the northern Highgrowth. Keth ranging further down. Vellin down 23% this cycle. They usually recover. Usually.*
+The reaction slot selects from different pools based on relationship length. Three tiers:
 
-**Cycle 67** (well known, one previous crash at cycle 58):
-> *The upper Highgrowth was quiet this cycle. Vellin taking heavy losses. 23% decline, Keth are deep in their range. This is the same pattern that preceded the crash in cycle 58. I know this pattern. I don't like it.*
+- **Early** (`cyclesSinceRoleIdentified` < 10) — uncertainty, observation, not yet sure what things mean
+- **Mid** (`cyclesSinceRoleIdentified` 10–30) — familiarity, pattern recognition, tentative predictions
+- **Late** (`cyclesSinceRoleIdentified` > 30) — intimacy, history references, emotional investment
+
+The same population crash at each tier:
+
+**Early:**
+> *Saw fewer {species} near the {primaryFood} today. Numbers down {declinePct}% - {primaryPredator} pressure from above. Still learning what this means for them.*
+
+**Mid:**
+> *The {species} have pulled back toward the northern {homeBiome}. {primaryPredator} ranging further in. Down {declinePct}% this cycle. They usually recover. Usually.*
+
+**Late:**
+> *The upper {homeBiome} was quiet this cycle. {species} taking heavy losses. {declinePct}% decline, {primaryPredator} deep in their range. This is the same pattern that preceded the crash in cycle {lastCrashCycle}. I know this pattern. I don't like it.*
+
+### Authored vs Dynamic
+
+| Component | Authored | Dynamic |
+|---|---|---|
+| Template strings | Yes — written once per event subtype | No |
+| Species names | No | Resolved from state |
+| Predator and food names | No | Resolved from relationships |
+| Population numbers | No | Resolved from simulation |
+| Cycle references | No | Resolved from history |
+| Observation detail pool | Yes — per species, per tier | Rotated at runtime |
+| Researcher reactions | Yes — per subtype, per tier | Selected by history flags |
+
+### Compound Events
+
+The standard template system treats each event as isolated — one trigger, one text. But the most interesting ecological moments are when multiple things happen simultaneously and are causally related. A Keth population boom and a Vellin population crisis in the same cycle aren't two events — they're one story.
+
+A compound event detection layer runs after the standard trigger pass. It looks at all events generated in the current cycle and checks for causal relationships between them:
+
+```javascript
+function detectCompoundEvents(events, state) {
+  const compounds = []
+
+  const predatorBooms = events.filter(e => e.subtype === "populationPeak")
+  const preyCrashes = events.filter(e => e.subtype === "populationCrash")
+
+  for (const boom of predatorBooms) {
+    for (const crash of preyCrashes) {
+      const predator = getSpecies(state, boom.speciesId)
+      const prey = getSpecies(state, crash.speciesId)
+      if (predator.eats.includes(prey.id)) {
+        compounds.push({
+          type: "compound",
+          subtype: "predatorBoomPreyCrash",
+          predatorId: predator.id,
+          preyId: prey.id,
+          cycle: boom.cycle,
+          absorbedEvents: [boom.id, crash.id]
+        })
+      }
+    }
+  }
+
+  return compounds
+}
+```
+
+Absorbed events don't surface individually — the compound replaces them. One card, one story.
+
+Compound templates gain a relationship slot that bridges the two events:
+
+```
+[observation_detail] [fact_A] [relationship] [fact_B] [researcher_reaction]
+```
+
+**Example — predator boom / prey crash:**
+> *The upper {homeBiome} is busy with {primaryPredator} activity. {prey} numbers are down {declinePct}% — lowest this season. The two things are not unrelated. The {primaryPredator} have been ranging deeper into {prey} territory for three cycles now. This is what that looks like.*
+
+**Example — apex predator departure / secondary consumer boom:**
+> *The {apexPredator} moved on sometime in the last two cycles. The {species} have noticed. Up {growthPct}% already — they expand fast when the pressure lifts. This won't last once the {apexPredator} returns, but for now the upper {homeBiome} belongs to them.*
+
+**Compound event candidates worth authoring** — identified by co-occurrence frequency rather than guesswork:
+- Predator boom + prey crash (same biome, predator eats prey)
+- Apex predator departure + secondary consumer boom
+- Producer crash + primary consumer crisis
+- Grubmere collapse + biome health decline
+- Biome border shift + species stress event at the new boundary
+
+### Simulation-Informed Authoring
+
+The observation pools and compound event templates should be written with knowledge of what actually happens in the simulation, not what is imagined to happen. Before authoring text, run 50-100 world seeds to cycle 500 and analyse the event logs.
+
+**Two applications:**
+
+**Informing the observation pools** — real simulation runs reveal how each species actually behaves in the ecosystem. Which species crash early and recover? How does Keth pressure actually manifest in numbers? What does a Vellin population look like at 6-cycle rhythm? This gives the authored pool sentences genuine grounding rather than invented behaviour.
+
+**Identifying compound event frequency** — clustering co-occurring events across many world runs shows which compound situations are worth authoring templates for. The top 8-10 compounds by frequency are the ones to write. Less common compounds fall back to individual event cards.
+
+**Stress testing the writing** — pipe a simulation run's event sequence through the template system and read the resulting text as a player would. Does it feel repetitive by cycle 100? Does the researcher voice stay consistent? Does the crisis escalation land correctly given the observations that preceded it? This turns simulation runs into a playtesting tool for writing quality before any real players see it.
+
+### Context Slot
+
+The context slot is where the researcher's memory lives. It connects the present moment to specific past events in that world — not generic awareness, but precise references. Without context the researcher is always experiencing things for the first time. With it they are a person with history.
+
+Context should be empty most of the time. Its power comes from scarcity. When it fires with a specific cycle reference it lands much harder than if it appeared on every event.
+
+**Context types:**
+
+**nearExtinctionRecovery** — the species previously dropped to near-extinction levels and survived. The most emotionally weighted context type. Makes current danger feel more consequential because the researcher knows how close it can get.
+> *They were at {lowestPop} individuals in cycle {lowestCycle}. Came back from that.*
+
+**priorDecision** — the researcher made a decision involving this species before. References what was chosen and what happened.
+> *I supported them directly in cycle {decisionCycle}. It worked then. Conditions are different now.*
+
+**priorSameEvent** — the same event type has fired for this species before. References the prior occurrence and its outcome.
+> *This is the same pattern that preceded the crash in cycle {priorCycle}. They recovered.*
+> *Saw this before at cycle {priorCycle}. Came back from it.*
+
+**consecutivePattern** — the same event type has fired for N consecutive cycles without recovery. Not a single past reference but an observed trend.
+> *Third consecutive decline.*
+> *{n} cycles of contraction now.*
+
+**Context detection:**
+
+```javascript
+function selectContext(event, species, state) {
+  const candidates = [
+    getNearExtinctionContext(event, species),
+    getPriorDecisionContext(event, species, state),
+    getPriorSameEventContext(event, species),
+    getConsecutivePatternContext(event, species)
+  ].filter(Boolean)
+
+  if (candidates.length === 0) return null
+
+  return candidates.sort((a, b) =>
+    getContextWeight(b, state) - getContextWeight(a, state)
+  )[0]
+}
+
+function getContextWeight(context, state) {
+  let weight = 0
+  if (context.type === "nearExtinctionRecovery") weight += 3
+  if (context.type === "priorDecision")          weight += 2
+  if (context.type === "priorSameEvent")         weight += 1
+  if (context.type === "consecutivePattern")     weight += 1
+  // Recency bonus — more recent history feels more relevant
+  if (context.cycle) {
+    weight += Math.max(0, 1 - (state.cycle - context.cycle) / 50)
+  }
+  return weight
+}
+```
+
+**Context cooldowns:**
+
+A context cooldown prevents the same context type from firing too frequently. Each type has its own cooldown period tracked per species:
+
+```javascript
+const contextCooldowns = {
+  priorSameEvent:          8,   // don't reference the same past crash twice in 8 cycles
+  consecutivePattern:      3,   // can fire more often — pattern is actively developing
+  nearExtinctionRecovery: 20,   // rare and weighty — don't dilute it
+  priorDecision:          12,
+}
+```
+
+**Context template pools:**
+
+```javascript
+const contextTemplates = {
+  priorSameEvent: [
+    "This is the same pattern that preceded the crash in cycle {priorCycle}.",
+    "Saw this before at cycle {priorCycle}. They recovered. Usually.",
+    "The numbers looked like this in cycle {priorCycle} too.",
+  ],
+  consecutivePattern: [
+    "Third consecutive decline.",
+    "{n} cycles of contraction now.",
+    "The population has been falling since cycle {startCycle}.",
+  ],
+  nearExtinctionRecovery: [
+    "They were at {lowestPop} individuals in cycle {lowestCycle}. Came back from that.",
+    "I've watched them recover from worse. Cycle {lowestCycle}, {lowestPop} left.",
+    "Lowest I've seen them was cycle {lowestCycle}. They pulled through.",
+  ],
+  priorDecision: [
+    "I intervened in cycle {decisionCycle}. {decisionOutcome}.",
+    "Direct support worked in cycle {decisionCycle}. Conditions are different now.",
+    "Last time I stepped in was cycle {decisionCycle}. Worth considering again.",
+  ]
+}
+```
+
+All context templates use the same token system as the rest of the writing. Additional context-specific tokens: `{priorCycle}`, `{lowestPop}`, `{lowestCycle}`, `{decisionCycle}`, `{decisionOutcome}`, `{n}`, `{startCycle}`.
+
+**History fields required on species to support context:**
+- `history.lowestPopulation` — lowest recorded population
+- `history.lowestPopulationCycle` — cycle when lowest was recorded
+- `history.events` — array of past events with subtype and cycle
+- `history.decisions` — array of past researcher decisions with cycle and outcome
+- `history.contextCooldowns` — per-type cycle tracking, same structure as event cooldowns
 
 ### Avoiding Repetition
-- Events reference specific numbers from the simulation - specificity prevents generic feel
-- Observation details rotate from a species-specific pool of 8-12 sentences
-- Context slot references real history - the word "again" does enormous work
-- Researcher reaction varies by relationship length and history flags
+- Observation details rotate from the pool for the current knowledge tier, never repeating the same sentence twice in the same session
+- Template slot selections track recent usage and avoid repeating within N events
+- Context slot fires only when relevant history exists and cooldown has cleared — scarcity is the point
+- Specific simulation numbers make templated text feel fresh because the numbers are always different
 - Quiet cycles between events make eventful ones land harder
-- Early game leans on uncertainty as a natural source of variety
+- Early game leans on uncertainty and sparse observation details as natural variety
+- Rare high-quality event texts that fire infrequently — a beautifully written once-per-era observation feels more alive than constant mediocre variety
+- Milestone moments (first extinction, first speciation) warrant fully hand-authored text that fires once and is never repeated
 
 ---
 
@@ -858,6 +1674,71 @@ if subpopulation.cyclesAdapting > adaptationThreshold
 
 Every event type maps to a threshold check. The simulation generates the facts. The writing system turns them into text.
 
+---
+
+## Discovery System
+
+The first sighting trigger is the entry point to the entire discovery arc. It has no equivalent in the standard event trigger system — it is not a population threshold, a relationship event, or a spatial event. It is a separate category: the researcher noticing something exists.
+
+### Sighting Score Accumulation
+
+Each undiscovered species accumulates a sighting score each cycle. When the score crosses a threshold the first sighting event fires, the species book gets its first sparse entry, and the species begins appearing in events.
+
+```javascript
+function calculateSightingScore(species, biomes, tools) {
+  const populationFactor = species.population / species.basePopulation
+  const toolBonus = hasToolInBiome(tools, species.homeBiome) ? 2.5 : 1.0
+  const biomeDensity = getTotalBiomePopulation(biomes[species.homeBiome])
+  const densityPenalty = Math.max(0.3, 1 - (biomeDensity / DENSITY_THRESHOLD))
+
+  return populationFactor * toolBonus * densityPenalty
+}
+```
+
+**Population factor** — species below 15% of their starting baseline cannot be sighted. A struggling or sparse species is genuinely hard to notice. A species that crashes before reaching the sighting threshold may never be discovered at all.
+
+**Tool bonus** — an observation post in the species' home biome multiplies sighting score by 2.5. Without a tool covering the biome, sightings are slow. Tool placement directly shapes which species the researcher encounters first — two players with posts in different biomes will have meaningfully different early games.
+
+**Density penalty** — a crowded biome makes individual species harder to isolate. Highgrowth, the densest biome, naturally slows discovery of its less prominent species.
+
+### Sighting Event Cadence
+
+After the first sighting fires, subsequent "saw it again" sighting events follow the same score model with a cooldown of 4-6 cycles. These continue until the initial study project completes and the species is named. After naming, sighting events stop and ecological events take over.
+
+The full arc:
+1. Sighting score accumulates silently each cycle
+2. Threshold crossed → first sighting event fires, sparse species book entry created
+3. Sighting events fire on cooldown while species is unstudied
+4. Ecosystem suggests initial study project after 3+ sightings
+5. Project completes → named and role identified, sighting events stop, ecological events begin
+
+### Never-Discovered Species
+
+A species that goes extinct before its sighting threshold is ever crossed has no narrative representation by default — it simply never existed from the researcher's perspective. The niche opens, the catalog appears, and the researcher has no memory of what was lost.
+
+This is intentional and can be eerie. But it creates a gap in the catalog event: the researcher is presented with a vacant niche and three candidates without any context for what used to fill it.
+
+A posthumous discovery event fires instead when a never-sighted species goes extinct. The researcher finds traces rather than the living creature:
+
+> *Something used to live in the southern Scorch Flats. The traces are clear enough — feeding patterns in the Scaleweed, territorial markings on the rock face. Whatever it was, it's gone before I could find it. The niche is vacant.*
+
+This ensures the catalog event always has narrative grounding, and creates a distinct emotional register — the researcher arriving too late — that is different from witnessing an extinction directly.
+
+### Home Screen — Early Game State
+
+At game start the species column reflects genuine uncertainty rather than appearing broken or empty. Unknown sighted species appear as biome-tagged placeholders:
+
+```
+SPECIES              | ECOSYSTEM
+                     |
+? Highgrowth         | Highgrowth   uncharacterized
+? Understory         | Understory   uncharacterized
+                     | Scorch Flats uncharacterized
+View all →           |
+```
+
+Placeholders are tappable and open the sparse species book entry if a first sighting has fired, or show nothing if the species has not yet been noticed. The ecosystem column shows biome names from cycle 1 with health marked as uncharacterized until an environmental sensor is placed or a biome survey begins. The emptiness communicates that the researcher just arrived and doesn't know what's here yet — not that the UI is incomplete.
+
 ### What Good Simulation Output Looks Like
 
 All species surviving all the time is not a success - it means the simulation is too stable. Flat stable populations, no extinctions, and no dramatic events indicate predation rates are too weak and the ecosystem is not generating the stories the game depends on.
@@ -873,13 +1754,15 @@ The target is interesting oscillation with occasional extinction:
 A healthy simulation report across 10 runs looks like:
 
 ```
-Run 1: 11/11 surviving at cycle 500. Vellin crashed to 8 at cycle 340 but recovered.
-Run 2: 10/11 surviving. Skethran extinct at cycle 412 after Woldren collapse.
-Run 3: 11/11 surviving. Keth/Vellin oscillations dramatic but stable.
-Run 4: 9/11 surviving. Torrak and Brack both lost after Scaleweed crash at cycle 280.
+Run 1: 11/11 surviving at cycle 500. Vellin crashed to 8 at cycle 71 but recovered.
+Run 2: 10/11 surviving. Torrak extinct at cycle 84 after Scaleweed dip. Niche vacant.
+Run 3: 11/11 surviving. Keth/Vellin oscillations dramatic but stable. First extinction cycle 91.
+Run 4: 9/11 surviving. Woldren lost at cycle 67. Brack followed at cycle 203 after Mordath shifted territory.
+Run 5: 10/11 surviving. Brack extinct cycle 58 - started overextended in this world. Ecosystem restabilized.
+Run 6: 11/11 surviving. Close call with Torrak at cycle 79, recovered to baseline by cycle 95.
 ```
 
-That mix - mostly surviving, occasional extinction, dramatic near-misses - means the coefficients are in the right zone. Tuning from there is about making the stories feel ecologically honest rather than hitting a numerical threshold.
+That mix - first extinctions clustered in cycles 50-100, mostly surviving to cycle 500, dramatic near-misses, occasional multi-extinction runs - means the coefficients and variance ranges are in the right zone. Tuning from there is about making the stories feel ecologically honest rather than hitting a numerical threshold.
 
 Population explosions (a species exceeding ~10000) are always a failure state. They indicate a predator has become too weak or extinct and its prey is compounding unchecked each cycle. Explosions usually precede total ecosystem collapse.
 
@@ -1011,7 +1894,8 @@ Each cycle is a pure function - takes a state object, returns a new state object
     resources: {
       fieldData: 340,
       specimens: 12
-    }
+    },
+    lastSummaryViewedCycle: 88,       // all events after this cycle appear in the summary
   },
   biomes: {
     highgrowth: { health: 0.82, borderPositions: {...} },
@@ -1044,9 +1928,12 @@ Each cycle is a pure function - takes a state object, returns a new state object
       },
       history: {
         cyclesObserved: 34,
+        cyclesSinceRoleIdentified: 12,  // cycles elapsed since named + role confirmed
         previousCrashes: 1,
         lastCrashCycle: 58,
         peakPopulation: 1240,
+        eventsInvolving: 7,             // total surfaced events involving this species
+        sightings: 3,                   // sighting events fired before initial study
         ancestor: null
       },
       observationPool: [...]
@@ -1310,10 +2197,45 @@ Research projects are the primary active layer of the game. They give the player
 
 ### Core Rules
 - One project active at a time
-- A queue of 2-3 suggestions always ready when the current project completes
-- Queue suggestions reflect the current ecosystem state when they are generated
-- Projects cost field data to initiate and run for a set number of cycles
+- The player can queue additional projects to run after the current one completes
+- Queued projects are validated against current simulation state when they reach the front of the queue. A project whose target no longer meets its relevance condition is silently dropped and the next item in the queue starts instead
+- Projects cost field data at the time they are initiated, not when queued
 - Station upgrades reduce cost and duration across all project tiers
+- Research can also be triggered directly from decision events — the vacant niche decision includes a "wait and research" option that spends field data to learn more about catalog candidates before committing to an introduction
+
+### Queue Validation
+
+Each queued project carries the condition that made it relevant when the player added it. This condition is checked when the project is about to start:
+
+```javascript
+{
+  type: "speciesStudy",
+  targetId: "vellin",
+  queuedCycle: 40,
+  relevanceCondition: "species.exists && !species.milestones.behaviorMapped",
+}
+```
+
+If the condition fails — species extinct, milestone already advanced by some other means, biome already surveyed — the project is dropped silently. No notification, no refund (nothing was spent yet). The next queued item is checked immediately. If the queue empties the project slot opens and the ecosystem generates fresh suggestions.
+
+This means the queue is a statement of intent, not a commitment. The player lines up what they want to study. The world decides whether that's still possible.
+
+### Mid-Run Extinction
+
+If a species goes extinct while a study of it is actively running, the project completes immediately rather than cancelling. The study ran for however many cycles it had before the subject disappeared. The milestone advances as normal. The findings are written in past tense:
+
+```
+Study terminated — subject lost at cycle 47.
+Five cycles of behavioral data recovered.
+
+The Vellin moved through the upper Highgrowth in loose groups,
+always faster near the canopy edge. I was beginning to understand
+their rhythm. I won't get the chance to finish.
+```
+
+Field data is not refunded. The researcher did the work. The world ended the study early.
+
+The milestone advancing for an extinct species has no gameplay consequence — there is nothing left to intervene on — but it completes the researcher's record of them. A species page with fully completed milestones and an extinction marker has its own weight. The researcher knew them well. That counts for something.
 
 ### Project Types
 
@@ -1388,19 +2310,20 @@ function generateProjectSuggestions(state) {
     }
   }
 
-  // Suggest behavioral study if species is well known and behavior unmapped
+  // Suggest behavioral study if species has been known long enough and generated enough events
   for (const species of state.species) {
     if (species.milestones.roleIdentified &&
         !species.milestones.behaviorMapped &&
-        species.history.cyclesObserved > 15) {
+        species.history.cyclesSinceRoleIdentified >= 5 &&
+        species.history.eventsInvolving >= 4) {
       suggestions.push(createSpeciesStudyProject(species, "behavioral"))
     }
   }
 
-  // Suggest biome survey if biome has active events but is uncharacterized
+  // Suggest biome survey once at least one species has been sighted there
   for (const biome of Object.values(state.biomes)) {
     if (!biome.milestones.characterized &&
-        hasRecentEvents(biome, state)) {
+        getSpeciesSightedInBiome(biome.id, state).length >= 1) {
       suggestions.push(createBiomeSurveyProject(biome, "initial"))
     }
   }
@@ -1426,15 +2349,15 @@ function generateProjectSuggestions(state) {
 
 ```javascript
 {
-  id: "proj_0012",
-  type: "speciesStudy",           // speciesStudy | ecologicalSurvey | monitoring | extraction | hazardAssessment
-  targetId: "vellin",             // species id, biome id, or fringe id
-  targetMilestone: "roleIdentified",
-  startCycle: 34,
-  duration: 3,                    // cycles to complete
-  fieldDataCost: 40,
-  passiveIncomePerCycle: 0,       // non-zero for monitoring projects
-  completionEffects: [
+id: "proj_0012",
+type: "speciesStudy",           // speciesStudy | ecologicalSurvey | monitoring | extraction | hazardAssessment
+targetId: "vellin",             // species id, biome id, or fringe id
+targetMilestone: "roleIdentified",
+startCycle: 34,
+duration: 3,                    // cycles to complete
+fieldDataCost: 40,
+passiveIncomePerCycle: 0,       // non-zero for monitoring projects, e.g. 4 field data per cycle
+completionEffects: [
     { type: "advanceMilestone", targetId: "vellin", milestone: "roleIdentified" },
     { type: "addBookEntry", targetId: "vellin", text: "..." },
     { type: "coinName", targetId: "vellin", suggestedName: "Vellin" }
@@ -1715,97 +2638,138 @@ Single player only. Each researcher has their own world. The researcher identity
 ## UI Structure
 
 ### Philosophy
-The interface reads like a researcher's instrument panel and field journal combined. One home screen handles the majority of every session. Secondary screens are detail views or focused decision moments - they open from home and return to home. There are no persistent tabs.
+The interface is a field journal. The log is the primary and only main surface — the researcher's continuous record of everything that has happened in the ecosystem. There is no separate home screen. There is no session summary screen. There is only the log, with a compact sticky header showing current status.
 
-Everything that names a species, biome, or tool is a tappable link. The whole game is hypertext - a living cross-referenced document the player navigates by curiosity.
+Everything that names a species, biome, or tool is a tappable link. The whole game is hypertext — a living cross-referenced document the player navigates by curiosity.
 
-### Home Screen
+### The Log
 
-The home screen is the game. Most sessions never leave it. Information is organized top to bottom by urgency.
+The log is the app. It opens on every session scrolled to the last-read marker. New entries appear below the marker. The player reads down, responds to anything that requires a response, and closes the app.
+
+The log is a continuous chronological feed of researcher-voice entries — observations, crisis cards, decision records, outcome entries, research completions. All event types appear here in a single unified feed.
 
 ```
----------------------------------
-ECHOSPHERE                  [Log]
-Cycle 94 · Away 6h · 6 cycles passed
-FIELD DATA 340  SPECIMENS 12
----------------------------------
-SINCE YOU WERE AWAY  6 cycles
+────────────────────────────────
+ECHOSPHERE
+Cycle 94 · Away 6h · FD 340 · SP 12
+Vellin behavioral study  [====  ]
+────────────────────────────────
 
-Vellin population dropped sharply as Keth
-pressure built through the upper Highgrowth.
-A subpopulation crossed into Understory.
-                        Read full summary →
----------------------------------
-EVENTS  2
+  Cycle 94
+  The upper Highgrowth was quiet
+  today. Vellin pulling back from
+  the northern canopy.
 
-[Crisis card - filled background]
-Vellin population collapsing
-The numbers are bad. Keth pressure has
-been building for three cycles.
-Cycle 91              I need to decide →
+  Cycle 91 — CRISIS
+  The Vellin are collapsing. Keth
+  pressure has been building for
+  three cycles. Numbers down 23%.
+  [Respond →]
 
-[Decision card - accent tint]
-Keth range expanding into Understory
-They have pushed further than last season.
-Cycle 90             I should weigh in →
----------------------------------
-RESEARCH
+  Cycle 91 — DECISION
+  Direct support
+  Spent 8 specimens.
 
-Vellin behavioral study
-results in a few hours        [=====  ]
----------------------------------
-SPECIES              | ECOSYSTEM
-                     |
-Vellin  847 (-115)   | Highgrowth  stable
-Keth    203 (+90)    | Understory  rising
-                     | Scorch Flats  stress
-View all →           |
----------------------------------
+── last read ──────────────────
+
+  Cycle 88
+  Keth ranging further than usual.
+  The upper Highgrowth is quieter
+  than it should be.
+
+  Cycle 85 — RESEARCH COMPLETE
+  Vellin behavioral study complete.
+  The canopy routes are more
+  deliberate than I expected...
+  + 120 field data
+  [Collect →]
+
+  Cycle 82
+  ...
+────────────────────────────────
 ```
 
-**Return header** - "Away 6h · 6 cycles passed" immediately orients the player before they read a single event. Reinforces that the world kept running without them.
+**Sticky header** — always visible at the top regardless of scroll position.
+- Line 1: App name
+- Line 2: Cycle count, time away, field data, specimens
+- Line 3: Active research project name and compact progress bar — tappable, opens the project screen
 
-**Resources** - field data and specimens always visible in the header, always current.
+When no project is active the research line shows "No active project →" which routes to the project screen.
 
-**Session summary banner** - shown below the header when returning after time away and there are new events to review. A single tappable line: "Since you were away · N events need attention →". Tapping routes the player to the Session Summary screen before they reach the home screen. If there are no events from the elapsed cycles the banner is not shown and the player lands directly on home.
+**Last-read marker** — a subtle dividing line in the log at `lastSummaryViewedCycle`. Everything above has been read. Everything below is new. The marker advances automatically when the player opens the app — no Continue button, no blocking. The modal decision gate replaces the need for the marker to block.
 
-**Events** - shown below the session summary. Crisis and decision events only — observation events live in the session summary. Each card is unresolved and actionable. The section disappears entirely when there are no pending crisis or decision events.
-
-**Research** - shown below events as a strip, not a card. Lower visual weight than event cards - it is a persistent status indicator, not a notification. Shows project name, an approximate time label, and a progress bar. The bar and the time label must not contradict each other. Always tappable - opens the project screen whether a project is active or not.
-
-**No active project state:**
+```javascript
+// On app open: advance marker then scroll to previous position
+function onAppOpen(state) {
+  const previousMarker = state.researcher.lastSummaryViewedCycle
+  return {
+    updatedState: {
+      ...state,
+      researcher: {
+        ...state.researcher,
+        lastSummaryViewedCycle: state.cycle
+      }
+    },
+    scrollToCycle: previousMarker
+  }
+}
 ```
-RESEARCH
 
-No active project.
-3 studies ready to begin.            →
-```
+**Early game** — with no named species and all organisms unknown, the log is a sparse series of sighting entries. The researcher just arrived. The world is revealing itself. There are no empty columns or dashboard placeholders to explain away. The log communicates the emptiness honestly.
 
-**Species and Ecosystem** - shown side by side in two columns to conserve vertical space. Species on the left, ecosystem on the right. Only species involved in active crisis or decision events appear in the species column. All three biomes always appear in the ecosystem column regardless of event state - a biome under stress should always be visible even if no event has fired for it yet.
+### Log Entry Types
 
-Species rows show current population and the change from 5 cycles ago in parentheses — `847 (−115)`. The diff is colored green for positive, red for negative, muted for zero. Full population history and trend analysis belong on the species detail page.
+All entries appear inline in the log in chronological order. Visual weight varies by type.
 
-**View all species** - a single link at the bottom of the species column opens the full species list.
+**Observation entries** — the most common entry type. Researcher voice, first person, no action required. Lower visual weight. The log's resting state.
 
-**Quiet sessions** - if there are no pending crisis or decision events the events section disappears entirely. Nothing fills the space. The emptiness is intentional - a quiet home screen is a reward for attentive play, not a loading state. The session summary, research strip, and species/ecosystem columns remain.
-
-### Event Cards
-
-Crisis and observation events are structurally distinct, not just chromatically. They are different shapes asking the player to do different things.
-
-**Crisis cards** have a filled background, a left border accent, and a footer row. The footer contains a biome chip on the left and a researcher-voice CTA on the right. The CTA escalates with the urgency score - which is already computed by the decision system and is relative to the species' rate of decline, not raw cycle count:
+**Crisis cards** — filled background, left border accent. Structurally distinct from observations. Carry an actionable CTA that escalates with urgency relative to rate of decline, not elapsed time:
 
 - Fresh crisis: *I should respond →*
 - Mid-escalation: *I need to decide →*
 - Near-expiry: *Can't ignore this →*
 
-A fast-collapsing population may escalate through all three tiers in 4-5 cycles. A slow-burning competition event may stay at tier one for 8 or more. The threshold is the rate of change, not a timer.
+A fast-collapsing population may escalate through all three tiers in 4-5 cycles. A slow-burning competition event may stay at tier one for 8 or more.
 
-When a decision expires - resolved during an offline batch while the player was away - the CTA is replaced by a past-tense outcome line in the same footer position: *resolved while you were away.* The card shape stays the same; the active voice drains out of it. This is distinct from a decision the player actively ignored, which becomes a log entry in a different register.
+When a crisis resolved naturally while the player was away the CTA is replaced by a past-tense line: *resolved while you were away.* The card shape stays the same; the active voice drains out of it.
 
-**Observation events** do not appear as cards on the home screen. They surface in the session summary and the full chronological session view. A crisis or decision event is always more meaningful when the observations that preceded it are readable nearby — the session summary provides that context.
+Tapping the CTA opens the decision modal over the log.
 
-The home screen event list contains only things that require the researcher's active response.
+**Decision records** — appear immediately below the crisis card they belong to, at the same cycle number. Record what was chosen and what was spent. Factual, no researcher voice. Permanent.
+
+```
+Cycle 91 — DECISION
+Direct support
+Spent 8 specimens.
+```
+
+**Outcome entries** — appear at the cycle the outcome is determined, wherever that falls in the log. Written in researcher voice as a natural continuation of the story. No mechanical link back to the original crisis card — the connection is implicit through subject matter and voice.
+
+> *Cycle 97 — The Vellin held. Whatever the direct support did it was enough to get them through the Keth pressure. Down to 340 but stable. Lower than I'd like. Watching.*
+
+If the outcome cycle is far from where the player is currently reading, the entry appears at its correct position in the log. The next time they scroll past it the story is concluded.
+
+**Research completion entries** — project completions appear as log entries with researcher findings in voice, the mechanical outcome, and a Collect button.
+
+```
+Cycle 85 — Vellin behavioral study complete.
+
+The canopy routes are more deliberate than I
+expected. They follow Feltmoss growth patterns
+almost exactly, adjusting each cycle. The Keth
+pressure shapes everything.
+
++ 120 field data collected
+[Collect →]
+```
+
+Tapping Collect adds the resources and removes the button. The entry remains. Project starts also appear as brief log entries.
+
+**Research start entries** — brief, factual.
+
+```
+Cycle 79 — Starting behavioral study on Vellin.
+```
 
 ### Secondary Screens
 
@@ -1828,24 +2792,21 @@ When no project is active:
 - Each card shows project name, type, cost, duration, and expected reward
 - Tap any suggestion card to initiate it
 
-**Decision Screen** - opens when a significant decision event fires. Full event text, context from researcher history, two or three clearly labeled choices with described consequences. Returns to home after decision is made.
+**Decision Modal** — opens when the player taps a crisis card CTA. Full screen overlay over the log. Contains situation text in researcher voice, relevant history context, and 2-3 option cards with honest uncertainty descriptions and costs. Cannot be dismissed without making a choice — the player must select an option or choose Observe (always available, no cost). After deciding the modal closes and a decision record appears immediately below the crisis card in the log at the same cycle number.
 
-**Catalog / Introduction Screen** - opens when a vacant niche event fires. Shows the three candidate species with their current knowledge milestone status, field notes accumulated through research, and the introduction button. Irreversible action requires a confirmation step.
+**Catalog / Introduction Screen** — opens when a vacant niche event fires as a log entry. Shows the three candidate species, their current knowledge milestone status, field notes from pre-introduction research, and the introduction button. Irreversible action requires a confirmation step.
 
-**Session Summary Screen** - the primary entry point when returning after time away. A chronological journal of everything that happened during the elapsed cycles, written in researcher voice. All event types appear here - observations, decisions, crises, project completions. Decision events that are still live show a "I should weigh in →" CTA. Decisions that resolved offline show a past-tense outcome. The player can back out to the home screen at any time. Only shown when there are events from the elapsed cycles.
-
-**Researcher Log** - opens from the [Log] button in the header. A searchable archive of all events across the entire playthrough. Not meant to be read linearly - it is a reference document. Species pages and biome pages pull relevant log entries automatically, making species- or biome-specific history easy to find without searching the full log. Era-based grouping keeps the log navigable over long playthroughs.
+**Researcher Log** — the log is the researcher log. It is not a separate screen. Species pages and biome pages surface relevant log entries automatically when viewed, making species- or biome-specific history findable without scrolling the full log.
 
 ### Linking Convention
 
 Every named entity in the game is a tappable link wherever it appears:
-- Species names in event text, log entries, species pages, tool labels
-- Biome names in events, species pages, ecosystem section
-- Tool names in events and log entries
+- Species names in log entries, species pages, tool labels
+- Biome names in log entries, species pages
+- Tool names in log entries
 - Ancestor species referenced in evolved species entries
-- Era markers in the researcher log
 
-The player navigates by curiosity, not by menu. A session might start on the home screen, follow a link to a species page, follow a link to another species mentioned in interactions, and return home - all without touching any navigation element.
+The player navigates by curiosity, not by menu. A session might start in the log, follow a link to a species page, follow a link to another species mentioned in interactions, and return to the log — all without touching any navigation element.
 
 ---
 
@@ -1857,9 +2818,9 @@ These are not design problems - the design is sound. These are implementation pr
 
 Lotka-Volterra equations are notoriously chaotic. A predator 1% too efficient eats all prey and starves. A predator 1% too weak allows prey to explode unchecked. Finding the growth rates, death rates, predation efficiencies, and carrying capacities that produce stable interesting oscillations rather than immediate ecosystem collapse is not a design task - it is a testing task.
 
-**The solution:** Build a hidden headless simulation script before building any UI. This script runs thousands of cycles in seconds with different coefficient sets and reports outcomes - did any species go extinct in the first 20 cycles, did any population explode to infinity, did the ecosystem reach a boring flat line. Run it repeatedly until a coefficient set produces interesting oscillating behavior across all 11 species over at least 500 cycles. Only then start building the game around those numbers.
+**The solution:** Build a headless simulation script before building any UI. This script has two jobs. First, find base coefficients that produce stable interesting oscillations across all 11 species over at least 500 cycles - running thousands of coefficient sets in seconds and reporting whether any species went extinct in the first 20 cycles, whether any population exploded, whether the ecosystem flatlined. Second, once base coefficients are established, run the `auditWorldVariance` function across 500+ world seeds to verify that starting condition variance produces the target extinction distribution (first extinction in cycles 50-100 in ~60% of runs, collapse rate under 3%). Only when both checks pass should UI development begin.
 
-This script will also be invaluable for testing future changes. Any time a new species, trait, or mechanic is added the headless simulation verifies it doesn't destabilize the ecosystem before it ships.
+This script is the primary tool for verifying any future change. Any time a new species, trait, or mechanic is added, both the coefficient check and the variance audit should be run before it ships.
 
 ### 2. Invisible Rubber-Banding
 
@@ -2094,7 +3055,7 @@ When the Mordath moves a movement event fires. Secondary consumers in the abando
 
 **Typography:** To be defined. Font pairing and type scale are the primary visual design tool.
 
-**UI philosophy:** Minimal. Event cards, status indicators, decision screens, tool status, and the researcher log. Data surfaces on demand. Notifications are sparse and meaningful. The game never panics - notifications feel like field camera alerts, not urgency prompts.
+**UI philosophy:** Minimal. The log is the interface. Status lives in the sticky header. Detail lives in secondary screens reached by tapping links. Data surfaces on demand. Notifications are sparse and meaningful — they feel like messages from a field camera, not urgency prompts.
 
 ---
 

@@ -202,7 +202,7 @@ export function checkThresholds(prevState, nextState) {
     // Population crisis (requires: understood)
     if (canFire('populationCrisis', sp) && prev.population > 0) {
       const drop = (prev.population - sp.population) / prev.population
-      if (drop > 0.30) {
+      if (drop > 0.10) {
         events.push({
           type:      EVENT_TYPES.POPULATION_CRISIS,
           cycle,
@@ -215,7 +215,7 @@ export function checkThresholds(prevState, nextState) {
     // Population surge (requires: known)
     if (
       canFire('populationSurge', sp) &&
-      sp.population > sp.history.peakPopulation &&
+      sp.population > prev.history.peakPopulation &&
       sp.population > sp.history.baseline * 1.2
     ) {
       events.push({
@@ -406,7 +406,7 @@ export function checkDiscovery(prevState, nextState) {
       })
     }
 
-    // subsequentSighting: sightingCount went from 1-4 to higher (max 5)
+    // subsequentSighting: counts 2–5 (4 lines in renderer, no repeats)
     if (
       nextDisc.sightingCount > prevDisc.sightingCount &&
       prevDisc.sightingCount >= 1 &&
@@ -420,6 +420,7 @@ export function checkDiscovery(prevState, nextState) {
           name:         sp.name,
           population:   sp.population,
           sightingCount: nextDisc.sightingCount,
+          biomeName:    sp.homeBiome,
         },
       })
     }

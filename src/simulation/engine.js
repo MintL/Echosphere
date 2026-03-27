@@ -4,6 +4,7 @@ import { checkThresholds, checkDiscovery, checkResearch } from './triggers.js'
 import { processMigration } from './migration.js'
 import { getCatalogSpecies } from '../data/catalog.js'
 import { advanceResearch, applyProjectCompletion, makeStudySuggestion, hasSuggestion } from './research.js'
+import { detectCompoundEvents } from './compounds.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -213,18 +214,25 @@ export function simulateCycle(state) {
 
     const pctChange = prev > 0 ? Math.abs(next - prev) / prev : 0
 
+    const isNewLow        = next > 0 && next < sp.history.lowestPopulation
+    const crashedThisCycle = prev > 0 && next < prev * 0.70
+
     return {
       ...sp,
       population: next,
       history: {
         ...sp.history,
-        previousPopulation:  prev,
-        peakPopulation:      Math.max(sp.history.peakPopulation, next),
-        lowestPopulation:    next > 0
+        previousPopulation:    prev,
+        peakPopulation:        Math.max(sp.history.peakPopulation, next),
+        lowestPopulation:      next > 0
           ? Math.min(sp.history.lowestPopulation, next)
           : sp.history.lowestPopulation,
-        stableCycles: pctChange < 0.02 ? sp.history.stableCycles + 1 : 0,
+        stableCycles:          pctChange < 0.02 ? sp.history.stableCycles + 1 : 0,
         extinctCycle,
+        lastCrashCycle:        crashedThisCycle ? state.cycle + 1 : sp.history.lastCrashCycle,
+        lowestPopulationCycle: isNewLow ? state.cycle + 1 : sp.history.lowestPopulationCycle,
+        consecutiveRiseCycles: next > prev ? (sp.history.consecutiveRiseCycles ?? 0) + 1 : 0,
+        previousCrashes:       crashedThisCycle ? (sp.history.previousCrashes ?? 0) + 1 : sp.history.previousCrashes,
       },
     }
   })
@@ -257,8 +265,8 @@ export function simulateCycle(state) {
     // Too sparse to find
     if (sp.population < baseline * 0.15) return { ...sp, discovery: disc }
 
-    const ROLE_RATE = { producer: 0.35, decomposer: 0.28, consumer: 0.18, predator: 0.12, specialist: 0.14, apex: 0.06 }
-    const delta    = (sp.population / baseline) * (ROLE_RATE[sp.role] ?? 0.15)
+    const ROLE_RATE = { producer: 0.22, decomposer: 0.18, consumer: 0.10, predator: 0.06, specialist: 0.08, apex: 0.025 }
+    const delta    = (sp.population / baseline) * (ROLE_RATE[sp.role] ?? 0.10)
     const newScore = Math.min(999, disc.sightingScore + delta)
 
     // Check if we just crossed a new integer threshold
@@ -292,6 +300,18 @@ export function simulateCycle(state) {
     finalSpecies = applyProjectCompletion(discoveredSpecies, completedProject)
   }
 
+  // Track cycles since roleIdentified (resets when behaviorMapped)
+  finalSpecies = finalSpecies.map(sp => {
+    if (!sp.milestones.roleIdentified || sp.milestones.behaviorMapped) return sp
+    return {
+      ...sp,
+      history: {
+        ...sp.history,
+        cyclesSinceRoleIdentified: (sp.history.cyclesSinceRoleIdentified ?? 0) + 1,
+      },
+    }
+  })
+
   return {
     ...state,
     cycle:      nextCycle,
@@ -314,6 +334,10 @@ const REQUIRES_DECISION = new Set([
   'cascadeRisk', 'biomeStress', 'nicheOpened',
 ])
 
+// Monotonically incrementing ID counter. Resets on page load — IDs only
+// need to be unique within a session (used for compound event absorption).
+let _eventSeq = 0
+
 function stampEvents(rawEvents) {
   return rawEvents.map(e => {
     let requiresDecision = REQUIRES_DECISION.has(e.type)
@@ -321,7 +345,7 @@ function stampEvents(rawEvents) {
     if (e.type === 'cascadeRisk') {
       requiresDecision = e.data.trigger === 'preyLost' && !e.data.hasOtherFood
     }
-    return { ...e, requiresDecision, resolved: false }
+    return { ...e, id: `ev-${++_eventSeq}`, requiresDecision, resolved: false, absorbed: false }
   })
 }
 
@@ -337,7 +361,46 @@ export function runCycles(state, cycleCount) {
       ...checkResearch(prev, state),
     ]
     const cycleEvents = stampEvents(rawEvents)
-    newEvents.push(...cycleEvents)
+
+    // Compound detection — runs after trigger pass, before event history update.
+    // Absorbed events are marked absorbed: true and replaced by compound events.
+    const compounds = detectCompoundEvents(cycleEvents, state)
+    let finalCycleEvents = cycleEvents
+    if (compounds.length > 0) {
+      const absorbedIds = new Set(compounds.flatMap(c => c.absorbedEventIds))
+      finalCycleEvents = cycleEvents.map(ev =>
+        absorbedIds.has(ev.id) ? { ...ev, absorbed: true } : ev
+      )
+    }
+    const allCycleEvents = [...finalCycleEvents, ...compounds]
+    newEvents.push(...allCycleEvents)
+
+    // Record species-tagged events into history.events for context detection.
+    // Capped at 100 per species — context detection only needs recent history.
+    const eventsBySpecies = {}
+    for (const ev of allCycleEvents) {
+      if (ev.speciesId) {
+        if (!eventsBySpecies[ev.speciesId]) eventsBySpecies[ev.speciesId] = []
+        eventsBySpecies[ev.speciesId].push({ type: ev.type, cycle: ev.cycle })
+      }
+    }
+    if (Object.keys(eventsBySpecies).length > 0) {
+      state = {
+        ...state,
+        species: state.species.map(sp => {
+          const incoming = eventsBySpecies[sp.id]
+          if (!incoming) return sp
+          const merged = [...(sp.history.events ?? []), ...incoming]
+          return {
+            ...sp,
+            history: {
+              ...sp.history,
+              events: merged.length > 100 ? merged.slice(merged.length - 100) : merged,
+            },
+          }
+        }),
+      }
+    }
 
     // Accumulate open niches from nicheOpened events into state
     for (const ev of cycleEvents) {
@@ -373,6 +436,33 @@ export function runCycles(state, cycleCount) {
               suggestions: [...trimmed, suggestion],
             },
           }
+        }
+      }
+    }
+  }
+
+  // Behavioral study suggestion: roleIdentified for 5+ cycles with 4+ events involving the species
+  for (const sp of state.species) {
+    if (
+      sp.milestones.roleIdentified &&
+      !sp.milestones.behaviorMapped &&
+      (sp.history.cyclesSinceRoleIdentified ?? 0) >= 5
+    ) {
+      const allEvents   = [...state.events, ...newEvents]
+      const evInvolving = allEvents.filter(
+        e => e.speciesId === sp.id || e.data?.preyId === sp.id || e.data?.predatorId === sp.id
+      ).length
+      const research = state.research || { active: null, queue: [], history: [], suggestions: [] }
+      if (evInvolving >= 4 && !hasSuggestion(research, sp.id, 'behavioral')) {
+        const suggestion = makeStudySuggestion(sp, 'behavioral', state.cycle)
+        const existing   = research.suggestions
+        const trimmed    = existing.length >= 5 ? existing.slice(1) : existing
+        state = {
+          ...state,
+          research: {
+            ...research,
+            suggestions: [...trimmed, suggestion],
+          },
         }
       }
     }
@@ -416,9 +506,16 @@ export function createInitialState(seed = 12345, researcherName = 'Dr. Voss') {
         previousPopulation: def.startingPopulation,
         peakPopulation:     def.startingPopulation,
         lowestPopulation:   def.startingPopulation,
-        stableCycles:       0,
-        cyclesObserved:     0,
-        extinctCycle:       null,
+        stableCycles:          0,
+        cyclesObserved:        0,
+        extinctCycle:          null,
+        lastCrashCycle:        null,
+        lowestPopulationCycle: 0,
+        consecutiveRiseCycles: 0,
+        previousCrashes:       0,
+        events:                [],
+        decisions:             [],
+        contextCooldowns:      {},
       },
       milestones: {
         observed:          false,

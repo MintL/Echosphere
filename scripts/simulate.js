@@ -93,6 +93,20 @@ function simulate(seed) {
   const series = {}
   let state = createInitialState(seed)
 
+  // Headless test assumes a fully-informed researcher — set all milestones so
+  // the full event palette fires. Milestone gating is tested in the live game,
+  // not here. Without this, species stay undiscovered and nearly all events gate.
+  state = {
+    ...state,
+    species: state.species.map(sp => ({
+      ...sp,
+      milestones: {
+        observed: true, named: true, roleIdentified: true,
+        behaviorMapped: true, populationModeled: true,
+      },
+    })),
+  }
+
   for (const sp of state.species) series[sp.id] = [sp.population]
 
   const events        = []

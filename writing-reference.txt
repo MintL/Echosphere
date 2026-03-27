@@ -1,0 +1,578 @@
+Running 20 seeds × 200 cycles...
+ECHOSPHERE — WRITING REFERENCE REPORT
+20 seeds × 200 cycles  |  generated 2026-03-26
+
+════════════════════════════════════════════════════════════════════════
+ 1. PER-SPECIES BEHAVIOURAL SUMMARIES
+════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────
+ FELTMOSS  (producer, highgrowth)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Producer — no prey. Growth limited by carrying capacity.
+  Eaten by: Vellin, Brack
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 800
+  min:      65    p5: 99    p25: 353
+  median:   672    p75: 959    p95: 1,123    max: 1,194
+  mean: 651    CV: 51.5%  (strong oscillation)
+
+Crash behaviour (11 total populationCrisis events):
+  typical drop:  13.6% (median),  13.2% (mean)
+  deepest drop:  15.5%
+  pop at crash:  median 451,  min 225
+  crash cycles:  1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  recovery time: median 189 cycles,  range 189–189 cycles
+  recovery rate: 9% recovered within run
+
+Surge behaviour (411 total populationSurge events):
+  pop at surge:  median 1,006,  max 1,194
+  surge cycles:  4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 12, 13 …
+
+Extinction warnings (2 events):
+  pop at warning: median 141,  min 137
+  warning cycles: 16, 33
+
+Events fired (total across all runs):
+  populationSurge               411  (~20.6 per run)
+  populationCrisis               11  (~0.6 per run)
+  populationStable                9  (~0.5 per run)
+  extinctionWarning               2  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ NIGHTROOT  (producer, understory)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Producer — no prey. Growth limited by carrying capacity.
+  Eaten by: Woldren
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 400
+  min:      136    p5: 190    p25: 299
+  median:   384    p75: 447    p95: 528    max: 569
+  mean: 372    CV: 27.4%  (moderate oscillation)
+
+Crash behaviour: no populationCrisis events fired
+
+Surge behaviour (518 total populationSurge events):
+  pop at surge:  median 457,  max 546
+  surge cycles:  7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14 …
+
+Events fired (total across all runs):
+  populationSurge               518  (~25.9 per run)
+  populationStable                4  (~0.2 per run)
+  cascadeRisk                     2  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ SCALEWEED  (producer, scorchFlats)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Producer — no prey. Growth limited by carrying capacity.
+  Eaten by: Brack, Torrak
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 200
+  min:      73    p5: 118    p25: 217
+  median:   258    p75: 295    p95: 328    max: 333
+  mean: 248    CV: 24.8%  (moderate oscillation)
+
+Crash behaviour (8 total populationCrisis events):
+  typical drop:  11.4% (median),  12.2% (mean)
+  deepest drop:  16.1%
+  pop at crash:  median 174,  min 133
+  crash cycles:  1, 1, 1, 2, 2, 2, 3, 3
+  recovery time: median 67 cycles,  range 39–83 cycles
+  recovery rate: 100% recovered within run
+
+Surge behaviour (1781 total populationSurge events):
+  pop at surge:  median 291,  max 333
+  surge cycles:  15, 16, 17, 18, 19, 19, 20, 20, 21, 21, 22, 22 …
+
+Events fired (total across all runs):
+  populationSurge              1781  (~89.0 per run)
+  populationStable               13  (~0.7 per run)
+  populationCrisis                8  (~0.4 per run)
+  cascadeRisk                     5  (~0.3 per run)
+
+────────────────────────────────────────────────────────────────────────
+ VELLIN  (primaryConsumer, highgrowth)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Feltmoss (attackRate=0.0002, efficiency=0.4)
+  Eaten by: Keth, Skethran
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 500
+  min:      9    p5: 23    p25: 46
+  median:   77    p75: 159    p95: 440    max: 818
+  mean: 133    CV: 103.5%  (strong oscillation)
+
+Crash behaviour (67 total populationCrisis events):
+  typical drop:  11.8% (median),  11.9% (mean)
+  deepest drop:  15.6%
+  pop at crash:  median 106,  min 9
+  crash cycles:  14, 15, 16, 19, 24, 24, 25, 27, 27, 28, 34, 34 …
+  recovery time: median 88 cycles,  range 33–163 cycles
+  recovery rate: 42% recovered within run
+
+Surge behaviour (15 total populationSurge events):
+  pop at surge:  median 585,  max 818
+  surge cycles:  3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12 …
+
+Extinction warnings (21 events):
+  pop at warning: median 64,  min 45
+  warning cycles: 41, 43, 44, 49, 50, 52, 52, 57, 60, 69, 75, 79, 80, 86, 93, 95, 103, 107, 123, 154, 160
+
+Events fired (total across all runs):
+  populationCrisis               67  (~3.4 per run)
+  populationStable               29  (~1.4 per run)
+  extinctionWarning              21  (~1.1 per run)
+  firstBiomeEntry                20  (~1.0 per run)
+  subpopulationStabilized        20  (~1.0 per run)
+  speciationCandidate            20  (~1.0 per run)
+  populationSurge                15  (~0.8 per run)
+
+────────────────────────────────────────────────────────────────────────
+ WOLDREN  (primaryConsumer, understory)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Nightroot (attackRate=0.00025, efficiency=0.6)
+  Eaten by: Skethran, Mordath
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 150
+  min:      1    p5: 2    p25: 5
+  median:   12    p75: 38    p95: 134    max: 240
+  mean: 32    CV: 138.3%  (strong oscillation)
+
+Crash behaviour: no populationCrisis events fired
+
+Surge behaviour (3 total populationSurge events):
+  pop at surge:  median 239,  max 240
+  surge cycles:  7, 8, 9
+
+Extinction warnings (20 events):
+  pop at warning: median 22,  min 15
+  warning cycles: 26, 36, 44, 46, 48, 49, 54, 59, 59, 64, 64, 65, 75, 76, 76, 79, 80, 96, 103, 134
+
+Events fired (total across all runs):
+  extinctionWarning              20  (~1.0 per run)
+  populationStable               17  (~0.8 per run)
+  populationSurge                 3  (~0.1 per run)
+  extinction                      2  (~0.1 per run)
+  nicheOpened                     2  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ BRACK  (primaryConsumer, scorchFlats)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Feltmoss (attackRate=0.0002, efficiency=0.3, borderScaled)
+  Eats Scaleweed (attackRate=0.0004, efficiency=0.5)
+  Eaten by: Mordath
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 75
+  min:      1    p5: 1    p25: 5
+  median:   13    p75: 34    p95: 61    max: 100
+  mean: 21    CV: 93.9%  (strong oscillation)
+
+Crash behaviour (16 total populationCrisis events):
+  typical drop:  11.5% (median),  12.1% (mean)
+  deepest drop:  15.6%
+  pop at crash:  median 16,  min 9
+  crash cycles:  14, 16, 17, 18, 18, 25, 25, 27, 28, 33, 34, 35 …
+  recovery time: median 94 cycles,  range 91–136 cycles
+  recovery rate: 25% recovered within run
+
+Surge behaviour (28 total populationSurge events):
+  pop at surge:  median 68,  max 72
+  surge cycles:  156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167 …
+
+Extinction warnings (15 events):
+  pop at warning: median 10,  min 7
+  warning cycles: 27, 29, 30, 31, 36, 40, 46, 53, 54, 55, 56, 61, 70, 71, 104
+
+Events fired (total across all runs):
+  populationSurge                28  (~1.4 per run)
+  firstBiomeEntry                27  (~1.4 per run)
+  populationStable               16  (~0.8 per run)
+  populationCrisis               16  (~0.8 per run)
+  extinctionWarning              15  (~0.8 per run)
+  subpopulationFailed             9  (~0.5 per run)
+  extinction                      7  (~0.3 per run)
+  nicheOpened                     7  (~0.3 per run)
+  subpopulationStabilized         7  (~0.3 per run)
+  speciationCandidate             4  (~0.2 per run)
+
+────────────────────────────────────────────────────────────────────────
+ TORRAK  (primaryConsumer, scorchFlats)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Scaleweed (attackRate=0.0006, efficiency=0.4)
+  Eaten by: Mordath
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 170
+  min:      1    p5: 1    p25: 3
+  median:   9    p75: 28    p95: 109    max: 229
+  mean: 25    CV: 149.1%  (strong oscillation)
+
+Crash behaviour (17 total populationCrisis events):
+  typical drop:  10.3% (median),  10.3% (mean)
+  deepest drop:  10.7%
+  pop at crash:  median 11,  min 2
+  crash cycles:  7, 8, 10, 14, 15, 17, 19, 23, 29, 30, 31, 32 …
+
+Extinction warnings (20 events):
+  pop at warning: median 26,  min 15
+  warning cycles: 19, 23, 23, 28, 28, 29, 29, 30, 30, 32, 35, 37, 37, 39, 41, 55, 58, 60, 84, 84
+
+Events fired (total across all runs):
+  extinctionWarning              20  (~1.0 per run)
+  populationCrisis               17  (~0.8 per run)
+  extinction                     14  (~0.7 per run)
+  nicheOpened                    14  (~0.7 per run)
+  populationStable                7  (~0.3 per run)
+
+────────────────────────────────────────────────────────────────────────
+ KETH  (secondaryConsumer, highgrowth)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Vellin (attackRate=0.00018, efficiency=0.65)
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 60
+  min:      2    p5: 10    p25: 25
+  median:   51    p75: 87    p95: 156    max: 270
+  mean: 62    CV: 77.1%  (strong oscillation)
+
+Crash behaviour: no populationCrisis events fired
+
+Surge behaviour (394 total populationSurge events):
+  pop at surge:  median 92,  max 270
+  surge cycles:  3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5 …
+
+Extinction warnings (3 events):
+  pop at warning: median 12,  min 7
+  warning cycles: 133, 150, 177
+
+Events fired (total across all runs):
+  populationSurge               394  (~19.7 per run)
+  populationStable               11  (~0.6 per run)
+  extinctionWarning               3  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ SKETHRAN  (secondaryConsumer, highgrowth)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Vellin (attackRate=0.00015, efficiency=0.6)
+  Eats Woldren (attackRate=0.00022, efficiency=0.6)
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 80
+  min:      3    p5: 19    p25: 58
+  median:   97    p75: 139    p95: 197    max: 243
+  mean: 100    CV: 54.3%  (strong oscillation)
+
+Crash behaviour (7 total populationCrisis events):
+  typical drop:  10.3% (median),  10.4% (mean)
+  deepest drop:  10.8%
+  pop at crash:  median 63,  min 19
+  crash cycles:  47, 50, 59, 59, 62, 68, 92
+
+Surge behaviour (563 total populationSurge events):
+  pop at surge:  median 143,  max 243
+  surge cycles:  3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5 …
+
+Extinction warnings (2 events):
+  pop at warning: median 9,  min 8
+  warning cycles: 129, 199
+
+Events fired (total across all runs):
+  populationSurge               563  (~28.1 per run)
+  populationStable               18  (~0.9 per run)
+  firstBiomeEntry                11  (~0.6 per run)
+  subpopulationStabilized        11  (~0.6 per run)
+  populationCrisis                7  (~0.3 per run)
+  speciationCandidate             3  (~0.1 per run)
+  extinctionWarning               2  (~0.1 per run)
+  cascadeRisk                     2  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ MORDATH  (apexPredator, highgrowth)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Eats Woldren (attackRate=0.00025, efficiency=0.55)
+  Eats Brack (attackRate=0.00024, efficiency=0.55)
+  Eats Torrak (attackRate=0.00025, efficiency=0.55)
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 15
+  min:      2    p5: 4    p25: 7
+  median:   10    p75: 15    p95: 26    max: 41
+  mean: 12    CV: 58.3%  (strong oscillation)
+
+Crash behaviour (6 total populationCrisis events):
+  typical drop:  10.2% (median),  10.2% (mean)
+  deepest drop:  10.5%
+  pop at crash:  median 18,  min 9
+  crash cycles:  38, 39, 65, 72, 75, 90
+
+Surge behaviour (170 total populationSurge events):
+  pop at surge:  median 25,  max 41
+  surge cycles:  4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7 …
+
+Events fired (total across all runs):
+  populationSurge               170  (~8.5 per run)
+  firstBiomeEntry                51  (~2.5 per run)
+  cascadeRisk                    23  (~1.1 per run)
+  subpopulationStabilized        14  (~0.7 per run)
+  speciationCandidate            11  (~0.6 per run)
+  populationStable                8  (~0.4 per run)
+  populationCrisis                6  (~0.3 per run)
+  subpopulationFailed             1  (~0.1 per run)
+
+────────────────────────────────────────────────────────────────────────
+ GRUBMERE  (decomposer, understory)
+────────────────────────────────────────────────────────────────────────
+
+Role / diet:
+  Producer — no prey. Growth limited by carrying capacity.
+
+Population distribution (across 20 runs × 200 cycles, living-only):
+  baseline: 200
+  min:      8    p5: 11    p25: 19
+  median:   31    p75: 76    p95: 178    max: 273
+  mean: 56    CV: 95.9%  (strong oscillation)
+
+Crash behaviour: no populationCrisis events fired
+
+Extinction warnings (20 events):
+  pop at warning: median 29,  min 19
+  warning cycles: 60, 70, 70, 75, 77, 79, 86, 87, 88, 89, 90, 95, 95, 102, 103, 133, 141, 154, 156, 190
+
+Events fired (total across all runs):
+  extinctionWarning              20  (~1.0 per run)
+  populationStable               17  (~0.8 per run)
+
+════════════════════════════════════════════════════════════════════════
+ 2. CO-OCCURRING EVENT PAIRS (top 20, ranked by frequency)
+════════════════════════════════════════════════════════════════════════
+
+Pair                                                         Count  Per run
+────────────────────────────────────────────────────────────────────────
+populationSurge/keth ↔ populationSurge/skethran               6545   327.3
+  example: cycle 3
+populationSurge/nightroot ↔ populationSurge/scaleweed         4835   241.8
+  example: cycle 15
+populationSurge/feltmoss ↔ populationSurge/scaleweed          4384   219.2
+  example: cycle 15
+populationSurge/mordath ↔ populationSurge/skethran            2939   146.9
+  example: cycle 4
+populationSurge/keth ↔ populationSurge/mordath                2148   107.4
+  example: cycle 4
+populationSurge/nightroot ↔ populationSurge/skethran          1577    78.8
+  example: cycle 7
+populationSurge/scaleweed ↔ populationSurge/skethran          1211    60.5
+  example: cycle 15
+populationSurge/keth ↔ populationSurge/nightroot              1136    56.8
+  example: cycle 7
+populationSurge/feltmoss ↔ populationSurge/nightroot           977    48.9
+  example: cycle 7
+populationSurge/keth ↔ populationSurge/scaleweed               760    38.0
+  example: cycle 15
+firstBiomeEntry/mordath ↔ populationSurge/skethran             629    31.4
+  example: cycle 4
+populationSurge/feltmoss ↔ populationSurge/skethran            586    29.3
+  example: cycle 4
+populationCrisis/vellin ↔ populationSurge/scaleweed            481    24.1
+  example: cycle 15
+firstBiomeEntry/mordath ↔ populationSurge/keth                 450    22.5
+  example: cycle 4
+populationSurge/mordath ↔ populationSurge/nightroot            448    22.4
+  example: cycle 7
+populationSurge/feltmoss ↔ populationSurge/keth                435    21.8
+  example: cycle 4
+populationSurge/brack ↔ populationSurge/scaleweed              347    17.4
+  example: cycle 156
+populationStable/vellin ↔ populationSurge/scaleweed            285    14.3
+  example: cycle 71
+populationSurge/mordath ↔ populationSurge/scaleweed            262    13.1
+  example: cycle 15
+populationCrisis/vellin ↔ populationSurge/skethran             253    12.7
+  example: cycle 14
+
+════════════════════════════════════════════════════════════════════════
+ 3. COMPOUND EVENT CANDIDATES
+════════════════════════════════════════════════════════════════════════
+
+These are the highest-frequency co-occurring pairs that share a known causal
+relationship in the food web. Strong candidates for compound event detection.
+
+  ★ populationSurge/keth               + populationCrisis/vellin            → 165 (8.25/run)
+  ★ populationSurge/skethran           + populationCrisis/vellin            → 253 (12.65/run)
+    populationSurge/skethran           + populationCrisis/woldren           →   0 (0.00/run)
+  ★ populationSurge/mordath            + populationCrisis/brack             →  62 (3.10/run)
+  ★ populationSurge/mordath            + populationCrisis/torrak            →  76 (3.80/run)
+    populationSurge/mordath            + populationCrisis/woldren           →   0 (0.00/run)
+    populationCrisis/feltmoss          + populationCrisis/vellin            →   0 (0.00/run)
+    populationCrisis/feltmoss          + extinctionWarning/vellin           →   0 (0.00/run)
+    populationCrisis/nightroot         + populationCrisis/woldren           →   0 (0.00/run)
+    populationCrisis/scaleweed         + populationCrisis/torrak            →   0 (0.00/run)
+    populationCrisis/scaleweed         + populationCrisis/brack             →   0 (0.00/run)
+  · populationCrisis/mordath           + populationSurge/keth               →   4 (0.20/run)
+    extinction/mordath                 + populationSurge/keth               →   0 (0.00/run)
+    extinction/mordath                 + populationSurge/skethran           →   0 (0.00/run)
+
+════════════════════════════════════════════════════════════════════════
+ 4. VELLIN — WRITING REFERENCE
+════════════════════════════════════════════════════════════════════════
+
+Vellin is a highgrowth climber — the primary prey for both Keth and Skethran.
+Eats Feltmoss. Starting population 500. Baseline is the primary calibration
+point for the highgrowth biome health cascade.
+
+POPULATION FACTS (for use in observation text):
+  Baseline:         500
+  Living range:     9 – 818
+  Typical (p25–p75) 46 – 159
+  Median:           77
+  Mean:             133
+  5th percentile:   23   (this is what "low" looks like)
+  95th percentile:  440  (this is what "high" looks like)
+  Oscillation CV:   103.5%  — strong, predictable swings
+
+CRASH PROFILE (67 events across 20 runs):
+  Typical crash: 11.8% drop in one cycle
+  Crash range:   10.1% – 15.6% drop
+  Pop at crash:  9 – 436, median 106
+  Pop pre-crash: 10 – 501, median 121
+  Recovery time: 33–163 cycles, median 88
+  First crash cycle (across runs): 14
+
+RELATIONSHIP CONTEXT:
+  Primary food:     Feltmoss (highgrowth, abundant — typical pop 672)
+  Primary predators: Keth (highgrowth flyer), Skethran (ranging, highgrowth/understory split)
+  At p95 population: Feltmoss is likely under pressure from Vellin grazing
+  At p5  population: Vellin may be in crisis or post-crash recovery
+
+SUGGESTED OBSERVATION DETAIL SENTENCES (Vellin):
+
+These sentences are grounded in simulation data. Numbers in [brackets] are
+the actual values — round or phrase them for the authored pool.
+
+SIGHTED tier (just observed, no context yet):
+  "Vellin — dense canopy grazers, 77 strong by current count."
+  "Movement in clusters. Hard to get an exact number at this distance."
+  "First visual confirmation. They're larger than the catalog illustration suggested."
+  "Several dozen visible from the observation point. Population unknown — estimate only."
+  "Grazing actively in the upper Highgrowth stratum. Haven't seen them descend."
+
+KNOWN tier (baseline understood, patterns forming):
+  "Down to around 46 — low end of what I've recorded, but still within range."
+  "Population holding near 77. Stable stretch, no pressure from above."
+  "At 440 they're visibly crowding the canopy edge — I can hear them from camp."
+  "Keth ranging widely today. Vellin have compressed to the upper growth, clustering tighter."
+  "Feltmoss coverage has retreated noticeably. Vellin numbers should follow within a few cycles."
+  "Third week of steady growth. They're spreading into the understory margins now."
+  "The 159-range feels like their comfort level — enough Feltmoss, light Keth pressure."
+
+UNDERSTOOD tier (relationships mapped, predictions forming):
+  "Classic post-crash pattern — Keth numbers are still dropping. Vellin should rebound in 88 cycles or so."
+  "The Feltmoss crash is going to reach them. I'd put Vellin crisis at 4–6 cycles out."
+  "They're at 23. Not extinction territory yet, but close. Keth will pull back once they notice."
+  "Pre-crash signature: clustered, skittish, not ranging. Last time I saw this they dropped 11.8% the next cycle."
+  "Vellin at 440 means Feltmoss is overdue for a correction. The cycle is about to turn."
+  "Holding at 77 while Keth is high — Skethran must be drawing off the predation pressure."
+
+MODELED tier (full predictive understanding):
+  "Vellin at 46 with Keth declining and Feltmoss recovering — textbook setup for a rebound."
+  "They're 77 right now. I'd expect a surge to 175–440 within 8–10 cycles if Keth stays quiet."
+  "The crash pattern is consistent: they drop 11.8% in a single cycle, then 88 cycles to recover. Watch for the Keth lag."
+  "Both predator lines are suppressed. Vellin has a clear window — they'll take it to the canopy ceiling before this is over."
+  "I've mapped this oscillation across 20 reference periods now. The floor is around 23, ceiling around 440. We're at the start of an upswing."
+
+
+════════════════════════════════════════════════════════════════════════
+ 5. WRITING PROMPTS BY EVENT TYPE
+════════════════════════════════════════════════════════════════════════
+
+For each event type, actual population values at time of firing. Use these
+ranges when writing observation_detail and reaction templates.
+
+POPULATIONCRISIS (132 events across all runs):
+  Vellin       ×67  pop: 9–436 (med 106)  prev: 10–501  cycles: 14,15,16,19,24,24…
+  Torrak       ×17  pop: 2–109 (med 11)  prev: 3–121  cycles: 7,8,10,14,15,17…
+  Brack        ×16  pop: 9–34 (med 16)  prev: 10–40  cycles: 14,16,17,18,18,25…
+  Feltmoss     ×11  pop: 225–828 (med 451)  prev: 254–962  cycles: 1,1,2,3,4,5…
+  Scaleweed    ×8  pop: 133–226 (med 174)  prev: 149–269  cycles: 1,1,1,2,2,2…
+  Skethran     ×7  pop: 19–208 (med 63)  prev: 21–231  cycles: 47,50,59,59,62,68…
+  Mordath      ×6  pop: 9–27 (med 18)  prev: 10–30  cycles: 38,39,65,72,75,90
+
+POPULATIONSURGE (3883 events across all runs):
+  Scaleweed    ×1781  pop: 154–333 (med 291)  prev: 152–333  cycles: 15,16,17,18,19,19…
+  Skethran     ×563  pop: 65–243 (med 143)  prev: 62–243  cycles: 3,3,4,4,4,4…
+  Nightroot    ×518  pop: 300–546 (med 457)  prev: 292–546  cycles: 7,8,9,10,10,11…
+  Feltmoss     ×411  pop: 725–1,194 (med 1,006)  prev: 721–1,194  cycles: 4,5,6,7,8,9…
+  Keth         ×394  pop: 47–270 (med 92)  prev: 46–269  cycles: 3,3,3,4,4,4…
+  Mordath      ×170  pop: 12–41 (med 25)  prev: 12–41  cycles: 4,5,5,5,6,6…
+  Brack        ×28  pop: 57–72 (med 68)  prev: 56–72  cycles: 156,157,158,159,160,161…
+  Vellin       ×15  pop: 380–818 (med 585)  prev: 353–816  cycles: 3,4,4,5,5,6…
+  Woldren      ×3  pop: 238–240 (med 239)  prev: 235–239  cycles: 7,8,9
+
+EXTINCTIONWARNING (103 events across all runs):
+  Vellin       ×21  pop: 45–100 (med 64)  prev: 46–103  cycles: 41,43,44,49,50,52…
+  Torrak       ×20  pop: 15–35 (med 26)  prev: 16–37  cycles: 19,23,23,28,28,29…
+  Woldren      ×20  pop: 15–31 (med 22)  prev: 15–32  cycles: 26,36,44,46,48,49…
+  Grubmere     ×20  pop: 19–41 (med 29)  prev: 20–42  cycles: 60,70,70,75,77,79…
+  Brack        ×15  pop: 7–15 (med 10)  prev: 8–16  cycles: 27,29,30,31,36,40…
+  Keth         ×3  pop: 7–12 (med 12)  prev: 7–13  cycles: 133,150,177
+  Skethran     ×2  pop: 8–9 (med 9)  prev: 8–10  cycles: 129,199
+  Feltmoss     ×2  pop: 137–145 (med 141)  prev: 147–151  cycles: 16,33
+
+EXTINCTION (23 events across all runs):
+  Torrak       ×14  pop: 0–0 (med 0)  prev: 1–1  cycles: 54,66,70,81,98,101…
+  Brack        ×7  pop: 0–0 (med 0)  prev: 1–1  cycles: 65,80,83,112,158,166…
+  Woldren      ×2  pop: 0–0 (med 0)  prev: 1–1  cycles: 102,129
+
+POPULATIONSTABLE (149 events across all runs):
+  Vellin       ×29  pop: 31–243 (med 54)  prev: 31–243  cycles: 71,73,77,78,79,80…
+  Skethran     ×18  pop: 82–231 (med 170)  prev: 90–232  cycles: 33,33,34,36,37,37…
+  Grubmere     ×17  pop: 10–72 (med 23)  prev: 10–74  cycles: 50,85,88,93,98,100…
+  Woldren      ×17  pop: 2–26 (med 7)  prev: 2–26  cycles: 82,96,99,99,103,104…
+  Brack        ×16  pop: 1–67 (med 8)  prev: 1–66  cycles: 35,53,53,59,72,84…
+  Scaleweed    ×13  pop: 81–278 (med 251)  prev: 80–276  cycles: 31,32,32,33,38,39…
+  Keth         ×11  pop: 4–251 (med 125)  prev: 4–253  cycles: 35,37,37,39,40,41…
+  Feltmoss     ×9  pop: 65–405 (med 194)  prev: 65–400  cycles: 38,41,42,44,51,52…
+  Mordath      ×8  pop: 11–37 (med 24)  prev: 12–37  cycles: 33,33,33,33,38,39…
+  Torrak       ×7  pop: 2–39 (med 6)  prev: 2–40  cycles: 53,58,61,99,107,138…
+  Nightroot    ×4  pop: 136–533 (med 257)  prev: 136–532  cycles: 33,34,42,47
+
+
+════════════════════════════════════════════════════════════════════════
+ 6. PREDATOR / PREY OSCILLATION PHASE RELATIONSHIPS
+════════════════════════════════════════════════════════════════════════
+
+For each predator/prey pair, typical cycle offset between predator surge and
+prey crisis. This is the lag between food web events — useful for writing
+compound events and temporal context.
+
+  Keth → Vellin                 lag: 0–11 cycles (median 1)  132 same-cycle co-occurrences
+  Skethran → Vellin             lag: 0–11 cycles (median 1)  194 same-cycle co-occurrences
+  Skethran → Woldren            lag: 0–20 cycles (median 8)  29 same-cycle co-occurrences
+  Mordath → Brack               lag: 0–10 cycles (median 1)  56 same-cycle co-occurrences
+  Mordath → Torrak              lag: 0–4 cycles (median 1)  81 same-cycle co-occurrences
+  Mordath → Woldren             lag: 0–20 cycles (median 10)  7 same-cycle co-occurrences
+

@@ -1,0 +1,290 @@
+[1m
+╔═══ Session Summary — 200 cycles, seed 12345 ═══╗[0m
+[2m    10/11 species surviving[0m
+[2m    Extinct: Brack[0m
+
+[2m  ── Cycle 3 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mUnderstory[0m. 276 individuals observed. Added to the observation list.
+[2m  ── Cycle 4 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mHighgrowth[0m. 588 individuals observed. Added to the observation list.
+[2m  ── Cycle 5 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mScorch Flats[0m. 174 individuals observed. Added to the observation list.
+[2m  ── Cycle 6 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mUnderstory[0m. 209 individuals observed. Added to the observation list.
+[2m  ── Cycle 8 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — spotted again in [33mUnderstory[0m. 299 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mHighgrowth[0m. 529 individuals observed. Added to the observation list.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mUnderstory[0m. 87 individuals observed. Added to the observation list.
+[2m  ── Cycle 9 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mScorch Flats[0m. 70 individuals observed. Added to the observation list.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mHighgrowth[0m. 140 individuals observed. Added to the observation list.
+[2m  ── Cycle 10 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — spotted again in [33mHighgrowth[0m. 515 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mHighgrowth[0m. 15 individuals observed. Added to the observation list.
+[2m  ── Cycle 12 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 316.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mUnderstory[0m. 198 individuals. Behavior consistent with previous observations.
+[2m  ── Cycle 13 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mScorch Flats[0m. 142 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mHighgrowth[0m. 93 individuals observed. Added to the observation list.
+  [2mOBS     [0m  Initial study on [36mNightroot[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 14 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. predation pressure has been light. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Unknown organism — first confirmed sighting in [33mScorch Flats[0m. 84 individuals observed. Added to the observation list.
+[2m  ── Cycle 15 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. 3 cycles of contraction now. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 16 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. The population has been falling since cycle 13. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 491.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mHighgrowth[0m. 165 individuals. Behavior consistent with previous observations.
+[2m  ── Cycle 17 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Initial study on [36mFeltmoss[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 18 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. predation pressure has been light. The population has been falling since cycle 13. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 182.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Behavioral study on [36mNightroot[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 19 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 13. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mHighgrowth[0m. 14 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Initial study on [36mGrubmere[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 20 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. Third consecutive decline. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mUnderstory[0m. 74 individuals. Behavior consistent with previous observations.
+[2m  ── Cycle 21 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. The population has been falling since cycle 13. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 22 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 155.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mHighgrowth[0m. 333 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 182.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Behavioral study on [36mFeltmoss[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 23 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. predation pressure has been light. The population has been falling since cycle 13. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mHighgrowth[0m. 104 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Initial study on [36mScaleweed[0m complete. Species formally designated. Role in the ecosystem confirmed.
+  [2mOBS     [0m  Starting: Initial Documentation — [36mUnknown organism[0m. Expected completion in 3 cycles.
+[2m  ── Cycle 24 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. Third consecutive decline. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  New high. predation pressure has been light. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Initial study on [36mSkethran[0m complete. Species formally designated. Role in the ecosystem confirmed.
+  [2mOBS     [0m  Starting: Behavioral Study — [36mGrubmere[0m. Expected completion in 6 cycles.
+[2m  ── Cycle 25 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+  [2mOBS     [0m  Behavioral study on [36mGrubmere[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 26 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. 3 cycles of contraction now. Can't tell if this is within their normal range. Marking it.
+[2m  ── Cycle 27 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 13. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Skethran at their highest observed count. 4 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 28 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. The population has been falling since cycle 13. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. The population has been falling since cycle 24. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+  [2mOBS     [0m  Behavioral study on [36mScaleweed[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 29 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. 17 cycles of contraction now. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. 6 cycles of contraction now. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 13.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Behavioral study on [36mSkethran[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 30 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. 18 cycles of contraction now. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Initial study on [36mMordath[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 31 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 13. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. The population has been falling since cycle 24. Numbers are up. I don't have enough history to know what this means.
+[2m  ── Cycle 32 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. predation pressure has been light. 20 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Skethran at their highest observed count. Third consecutive decline. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+[2m  ── Cycle 33 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  New high. predation pressure has been light. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 34 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. 22 cycles of contraction now. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Skethran at their highest observed count. The population has been falling since cycle 24. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Unknown organism — spotted again in [33mScorch Flats[0m. 23 individuals. Behavior consistent with previous observations.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 103.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+[2m  ── Cycle 35 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 61.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Initial study on [36mKeth[0m complete. Species formally designated. Role in the ecosystem confirmed.
+  [2mOBS     [0m  Starting: Behavioral Study — [36mMordath[0m. Expected completion in 6 cycles.
+[2m  ── Cycle 36 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. 24 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+  [2mOBS     [0m  Behavioral study on [36mMordath[0m complete. Movement patterns and ecological interactions documented.
+  [2mOBS     [0m  Starting: Initial Documentation — [36mUnknown organism[0m. Expected completion in 3 cycles.
+[2m  ── Cycle 37 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Woldren pressure has been light. The population has been falling since cycle 13. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  [36mSkethran[0m has maintained a stable population near 204 for twenty consecutive cycles. Unusually consistent for this species.
+  [2mOBS     [0m  Initial study on [36mWoldren[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 38 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. The population has been falling since cycle 13. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  New high. predation pressure has been light. The population has been falling since cycle 24. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 39 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 13. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  New high. predation pressure has been light. Third consecutive decline. Numbers are up. I don't have enough history to know what this means.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 40 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. The population has been falling since cycle 13. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  Skethran at their highest observed count. The population has been falling since cycle 24. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Behavioral study on [36mKeth[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 41 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Woldren pressure has been light. Third consecutive decline. The increase is notable. I don't have context for it yet.
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 42 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. 19 cycles of contraction now. Can't tell if this is within their normal range. Marking it.
+  [2mOBS     [0m  Behavioral study on [36mWoldren[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 43 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. 20 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 44 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. predation pressure has been light. The population has been falling since cycle 24. First significant peak I've recorded. Not sure if this is typical for them.
+  [2mOBS     [0m  First [36mMordath[0m individuals recorded in [33mUnderstory[0m — a subpopulation of 1. New territory.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 45 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. 22 cycles of contraction now. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 46 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. Third consecutive decline. Numbers are up. I don't have enough history to know what this means.
+[2m  ── Cycle 47 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 48 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  First [36mMordath[0m individuals recorded in [33mUnderstory[0m — a subpopulation of 1. New territory.
+[2m  ── Cycle 50 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+[2m  ── Cycle 52 ────────────────────────────────────────────────────────────[0m
+  [31mCRISIS  [0m  [31mPopulation down 10%. Lowest in 0 cycles. Hard to contextualize without more cycles of data.[0m
+  [2mOBS     [0m  First [36mMordath[0m individuals recorded in [33mUnderstory[0m — a subpopulation of 1. New territory.
+[2m  ── Cycle 54 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  [36mScaleweed[0m has maintained a stable population near 253 for twenty consecutive cycles. Unusually consistent for this species.
+  [2mOBS     [0m  Unknown organism — another sighting. Population holding near 132.
+  [2mOBS     [0m  Unknown organism — observed enough times to justify a formal study. Added to research suggestions.
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 55 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Initial study on [36mVellin[0m complete. Species formally designated. Role in the ecosystem confirmed.
+[2m  ── Cycle 56 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+[2m  ── Cycle 59 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  [36mVellin[0m has maintained a stable population near 114 for twenty consecutive cycles. Unusually consistent for this species.
+[2m  ── Cycle 60 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Behavioral study on [36mVellin[0m complete. Movement patterns and ecological interactions documented.
+[2m  ── Cycle 69 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  [36mGrubmere[0m has maintained a stable population near 73 for twenty consecutive cycles. Unusually consistent for this species.
+[2m  ── Cycle 72 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 73 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Numbers are up. I don't have enough history to know what this means.
+[2m  ── Cycle 74 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Feltmoss at their highest observed count. The population has been falling since cycle 72. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 75 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Vellin pressure has been light. 4 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 76 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. Third consecutive decline. Can't tell if this is within their normal range. Marking it.
+[2m  ── Cycle 77 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 72. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 78 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Feltmoss at their highest observed count. The population has been falling since cycle 72. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 79 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Third consecutive decline. Can't tell if this is within their normal range. Marking it.
+[2m  ── Cycle 80 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Vellin pressure has been light. The population has been falling since cycle 72. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 83 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+[2m  ── Cycle 84 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  The [36mVellin[0m subpopulation in [33mUnderstory[0m has been adapting for 50 cycles. Divergence from the main population is measurable.
+[2m  ── Cycle 101 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  [36mWoldren[0m has maintained a stable population near 19 for twenty consecutive cycles. Unusually consistent for this species.
+[2m  ── Cycle 111 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — fourth confirmed sighting. Pattern is consistent.
+[2m  ── Cycle 116 ────────────────────────────────────────────────────────────[0m
+  [31mCRISIS  [0m  [31m[36mWoldren[0m population at 15% of baseline — 15 individuals. At this rate, collapse is possible within a few cycles.[0m
+[2m  ── Cycle 156 ────────────────────────────────────────────────────────────[0m
+  [31mCRISIS  [0m  [31m[36mUnknown organism[0m — no individuals recorded this cycle. Peak population was 101. The species appears to have collapsed entirely.[0m
+  [2mOBS     [0m  [36mMordath[0m has lost [36mUnknown organism[0m as a food source. It has other prey available, but this loss will be felt.
+[2m  ── Cycle 159 ────────────────────────────────────────────────────────────[0m
+  [31mCRISIS  [0m  [31m[36mGrubmere[0m population at 15% of baseline — 32 individuals. At this rate, collapse is possible within a few cycles.[0m
+[2m  ── Cycle 160 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Unknown organism — fifth sighting recorded. Sufficient observations to propose a formal study.
+[2m  ── Cycle 189 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. This is the same pattern that preceded the crash in cycle 41. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 190 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 191 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. 3 cycles of contraction now. Numbers are up. I don't have enough history to know what this means.
+[2m  ── Cycle 192 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 189. Can't tell if this is within their normal range. Marking it.
+[2m  ── Cycle 193 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Woldren pressure has been light. 5 cycles of contraction now. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 194 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. 6 cycles of contraction now. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 195 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Numbers climbing — 1% above last cycle. Third consecutive decline. Something to watch. Good or bad, I don't know yet.
+[2m  ── Cycle 196 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Sharp increase this cycle. food availability appears to be supporting it. The population has been falling since cycle 189. First significant peak I've recorded. Not sure if this is typical for them.
+[2m  ── Cycle 197 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Nightroot at their highest observed count. 9 cycles of contraction now. The increase is notable. I don't have context for it yet.
+[2m  ── Cycle 198 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Woldren pressure has been light. Third consecutive decline. Can't tell if this is within their normal range. Marking it.
+[2m  ── Cycle 199 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  Up 1% from last cycle — new recorded peak. The population has been falling since cycle 189. Numbers are up. I don't have enough history to know what this means.
+[2m  ── Cycle 200 ────────────────────────────────────────────────────────────[0m
+  [2mOBS     [0m  New high. Woldren pressure has been light. Third consecutive decline. First significant peak I've recorded. Not sure if this is typical for them.
+[2m
+  ────────────────────────────────────────────────────────────────[0m
+
+[1mEvent counts
+[0m
+  populationSurge                      [33m████████████████████[0m 74
+  subsequentSighting                   [33m██████████          [0m 37
+  studyCompleted                       [33m█████               [0m 18
+  firstSighting                        [33m███                 [0m 11
+  studySuggested                       [33m██                  [0m 9
+  populationStable                     [33m█                   [0m 5
+  researchStarted                      [33m█                   [0m 4
+  firstBiomeEntry                      [33m█                   [0m 3
+  extinctionWarning                    [33m█                   [0m 2
+  populationCrisis                     [33m                    [0m 1
+  speciationCandidate                  [33m                    [0m 1
+  extinction                           [33m                    [0m 1
+  cascadeRisk                          [33m                    [0m 1
+[2m
+  167 events — 0.8/cycle[0m
+[1m
+Final populations
+[0m
+  [1mFeltmoss      [0m pop   664  peak   824  low   490
+  [1mNightroot     [0m pop   383  peak   383  low   264
+  [1mScaleweed     [0m pop   311  peak   311  low   142
+  [1mSkethran      [0m pop   120  peak   208  low   103
+  [1mVellin        [0m pop   108  peak   609  low    95
+  [1mGrubmere      [0m pop    27  peak   214  low    27
+  [1mKeth          [0m pop    15  peak   104  low    15
+  [1mWoldren       [0m pop     8  peak    99  low     8
+  [1mMordath       [0m pop     3  peak    15  low     3
+  [1mTorrak        [0m pop     1  peak   183  low     1
+  [1mBrack         [0m pop [31mEXTINCT[0m  peak   101  low     1
+[1m
+╚═══════════════════════════════════════════════════════╝
+[0m
